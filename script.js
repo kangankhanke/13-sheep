@@ -1,4 +1,3 @@
-
 let board = [];
 let sheep = [];
 let fences = new Set();
@@ -11,7 +10,13 @@ let mustRollDice = true; // Player must roll dice before placing fence
 //const placedFenceShapes = []; // global array to store placed fence shapes
 
 
-
+function rollDice() {
+            console.log("Roll dice function called");
+        }
+        
+function newGame() {
+            console.log("New game function called");
+        }
 // Fence shapes for each dice roll (1-6)
 const fenceShapes = {
     1: [
@@ -54,35 +59,6 @@ const fenceShapes = {
     ]
 };
 
-// function initGame() {
-//     board = Array(7).fill().map(() => Array(7).fill(null));
-//     sheep = [];
-//     fences = new Set();
-    
-//     // Place 13 sheep randomly
-//     let positions = [];
-//     for (let i = 0; i < 7; i++) {
-//         for (let j = 0; j < 7; j++) {
-//             positions.push([i, j]);
-//         }
-//     }
-    
-//     // Shuffle and pick 13 positions
-//     for (let i = positions.length - 1; i > 0; i--) {
-//         const j = Math.floor(Math.random() * (i + 1));
-//         [positions[i], positions[j]] = [positions[j], positions[i]];
-//     }
-    
-//     for (let i = 0; i < 13; i++) {
-//         const [row, col] = positions[i];
-//         board[row][col] = 'sheep';
-//         sheep.push([row, col]);
-//     }
-//     createRandomBushes(); 
-//     createBoard();
-//     updateProtectedCount();
-//     hideErrorMessage();
-// }
 function initGame() {
     board = Array(7).fill().map(() => Array(7).fill(null));
     sheep = [];
@@ -196,21 +172,167 @@ function hideErrorMessage() {
     document.getElementById('errorMessage').style.display = 'none';
 }
 
-// function rollDice() {
-//     const dice = document.getElementById('dice');
-//     const roll = Math.floor(Math.random() * 6) + 1;
-//     currentDiceRoll = roll;
+
+
+// Replace the existing isProtected function with this new implementation
+
+function isProtected(row, col) {
+    // Use flood-fill to check if the sheep can reach the board edge
+    // If it can't reach the edge, it's protected by the fence arrangement
     
-//     dice.textContent = roll;
-//     dice.style.animation = 'roll 0.5s';
+    const visited = new Set();
+    const queue = [[row, col]];
+    visited.add(`${row}-${col}`);
     
-//     setTimeout(() => {
-//         dice.style.animation = '';
-//         showFenceOptions(roll);
-//     }, 500);
+    while (queue.length > 0) {
+        const [currentRow, currentCol] = queue.shift();
+        
+        // If we reached the board edge, the sheep is NOT protected
+        if (currentRow === -1 || currentRow === 7 || currentCol === -1 || currentCol === 7) {
+            return false;
+        }
+        
+        // Check all four directions
+        const directions = [
+            {dir: 'top', newRow: currentRow - 1, newCol: currentCol, fenceKey: `${currentRow}-${currentCol}-top`},
+            {dir: 'bottom', newRow: currentRow + 1, newCol: currentCol, fenceKey: `${currentRow}-${currentCol}-bottom`},
+            {dir: 'left', newRow: currentRow, newCol: currentCol - 1, fenceKey: `${currentRow}-${currentCol}-left`},
+            {dir: 'right', newRow: currentRow, newCol: currentCol + 1, fenceKey: `${currentRow}-${currentCol}-right`}
+        ];
+        
+        for (const {newRow, newCol, fenceKey} of directions) {
+            // Check if we're still within bounds
+            if (newRow >= -1 && newRow <= 7 && newCol >= -1 && newCol <= 7) {
+                // Check if there's a fence blocking this direction
+                if (!fences.has(fenceKey)) {
+                    // No fence blocking, and we haven't visited this cell yet
+                    const cellKey = `${newRow}-${newCol}`;
+                    if (!visited.has(cellKey)) {
+                        visited.add(cellKey);
+                        queue.push([newRow, newCol]);
+                    }
+                }
+            }
+        }
+    }
     
-//     hideErrorMessage();
-// }
+    // If we couldn't reach any board edge, the sheep is protected
+    return true;
+}
+
+// Enhanced version that also provides visual feedback (optional)
+function isProtectedWithDebug(row, col) {
+    // This version shows which cells the sheep can reach (for debugging)
+    const visited = new Set();
+    const queue = [[row, col]];
+    const reachableCells = [];
+    visited.add(`${row}-${col}`);
+    
+    while (queue.length > 0) {
+        const [currentRow, currentCol] = queue.shift();
+        reachableCells.push([currentRow, currentCol]);
+        
+        // If we reached the board edge, the sheep is NOT protected
+        if (currentRow === 0 || currentRow === 6 || currentCol === 0 || currentCol === 6) {
+            console.log(`Sheep at (${row}, ${col}) can reach edge at (${currentRow}, ${currentCol})`);
+            console.log('Reachable cells:', reachableCells);
+            return false;
+        }
+        
+        // Check all four directions
+        const directions = [
+            {dir: 'top', newRow: currentRow - 1, newCol: currentCol, fenceKey: `${currentRow}-${currentCol}-top`},
+            {dir: 'bottom', newRow: currentRow + 1, newCol: currentCol, fenceKey: `${currentRow}-${currentCol}-bottom`},
+            {dir: 'left', newRow: currentRow, newCol: currentCol - 1, fenceKey: `${currentRow}-${currentCol}-left`},
+            {dir: 'right', newRow: currentRow, newCol: currentCol + 1, fenceKey: `${currentRow}-${currentCol}-right`}
+        ];
+        
+        for (const {dir, newRow, newCol, fenceKey} of directions) {
+            // Check if we're still within bounds
+            if (newRow >= 0 && newRow < 7 && newCol >= 0 && newCol < 7) {
+                // Check if there's a fence blocking this direction
+                if (!fences.has(fenceKey)) {
+                    // No fence blocking, and we haven't visited this cell yet
+                    const cellKey = `${newRow}-${newCol}`;
+                    if (!visited.has(cellKey)) {
+                        visited.add(cellKey);
+                        queue.push([newRow, newCol]);
+                    }
+                } else {
+                    console.log(`Fence blocks movement from (${currentRow}, ${currentCol}) to ${dir}: ${fenceKey}`);
+                }
+            }
+        }
+    }
+    
+    // If we couldn't reach any board edge, the sheep is protected
+    console.log(`Sheep at (${row}, ${col}) is PROTECTED. Reachable area:`, reachableCells);
+    return true;
+}
+
+// Optional: Function to highlight protected areas (for visual debugging)
+function highlightProtectedAreas() {
+    // Remove existing highlights
+    document.querySelectorAll('.protected-area').forEach(el => el.remove());
+    
+    sheep.forEach(([sheepRow, sheepCol]) => {
+        if (isProtected(sheepRow, sheepCol)) {
+            // Find all cells in this sheep's protected area
+            const visited = new Set();
+            const queue = [[sheepRow, sheepCol]];
+            const protectedCells = [];
+            visited.add(`${sheepRow}-${sheepCol}`);
+            
+            while (queue.length > 0) {
+                const [currentRow, currentCol] = queue.shift();
+                protectedCells.push([currentRow, currentCol]);
+                
+                // Don't continue if we hit the edge (shouldn't happen for protected sheep)
+                if (currentRow === 0 || currentRow === 6 || currentCol === 0 || currentCol === 6) {
+                    continue;
+                }
+                
+                // Check all four directions
+                const directions = [
+                    {newRow: currentRow - 1, newCol: currentCol, fenceKey: `${currentRow}-${currentCol}-top`},
+                    {newRow: currentRow + 1, newCol: currentCol, fenceKey: `${currentRow}-${currentCol}-bottom`},
+                    {newRow: currentRow, newCol: currentCol - 1, fenceKey: `${currentRow}-${currentCol}-left`},
+                    {newRow: currentRow, newCol: currentCol + 1, fenceKey: `${currentRow}-${currentCol}-right`}
+                ];
+                
+                for (const {newRow, newCol, fenceKey} of directions) {
+                    if (newRow >= 0 && newRow < 7 && newCol >= 0 && newCol < 7) {
+                        if (!fences.has(fenceKey)) {
+                            const cellKey = `${newRow}-${newCol}`;
+                            if (!visited.has(cellKey)) {
+                                visited.add(cellKey);
+                                queue.push([newRow, newCol]);
+                            }
+                        }
+                    }
+                }
+            }
+            
+            // Highlight all cells in this protected area
+            protectedCells.forEach(([cellRow, cellCol]) => {
+                const highlightEl = document.createElement('div');
+                highlightEl.className = 'protected-area';
+                highlightEl.style.left = (cellCol * 60 + 10) + 'px';
+                highlightEl.style.top = (cellRow * 60 + 10) + 'px';
+                highlightEl.style.width = '50px';
+                highlightEl.style.height = '50px';
+                highlightEl.style.backgroundColor = 'rgba(0, 255, 0, 0.2)';
+                highlightEl.style.border = '2px solid rgba(0, 255, 0, 0.5)';
+                highlightEl.style.position = 'absolute';
+                highlightEl.style.pointerEvents = 'none';
+                highlightEl.style.zIndex = '1';
+                
+                document.getElementById('gameBoard').appendChild(highlightEl);
+            });
+        }
+    });
+}
+
 function rollDice() {
     // Check if player must roll dice (first turn or after placing a fence)
     if (!mustRollDice) {
@@ -291,99 +413,8 @@ function selectShape(roll, shapeIndex) {
     hideErrorMessage();
 }
 
-
-///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 // Store placed shapes instead of just fence keys
 const placedShapes = []; // Array to store {startRow, startCol, shape, roll, shapeIndex}
-
-
-// Enhanced intersection detection function
-function hasGridPointConflict(newStartRow, newStartCol, newShape) {
-    // Get all grid points where the new shape has multiple fence lines meeting
-    const newGridPoints = getGridPointsWithMultipleFences(newStartRow, newStartCol, newShape);
-    
-    // Check each existing placed shape
-    for (const placedShape of placedShapes) {
-        const existingGridPoints = getGridPointsWithMultipleFences(
-            placedShape.startRow, 
-            placedShape.startCol, 
-            placedShape.shape
-        );
-        
-        // Check if any grid points overlap
-        for (const newPoint of newGridPoints) {
-            for (const existingPoint of existingGridPoints) {
-                if (newPoint.gridX === existingPoint.gridX && newPoint.gridY === existingPoint.gridY) {
-                    // Same grid point has multiple fences from both shapes
-                    // Check if they would create a cross pattern (perpendicular intersections)
-                    if (wouldCreateCrossPattern(newPoint.fences, existingPoint.fences)) {
-                        return true;
-                    }
-                }
-            }
-        }
-    }
-    
-    return false;
-}
-
-// Helper function to find grid points where a shape has multiple fence lines meeting
-function getGridPointsWithMultipleFences(startRow, startCol, shape) {
-    const gridPointMap = new Map();
-    
-    // For each fence in the shape, determine which grid points it touches
-    shape.forEach(fence => {
-        const row = startRow + fence.row;
-        const col = startCol + fence.col;
-        
-        let gridPoints = [];
-        
-        if (fence.type === 'horizontal') {
-            if (fence.position === 'top') {
-                gridPoints = [
-                    {gridX: col, gridY: row},
-                    {gridX: col + 1, gridY: row}
-                ];
-            } else { // bottom
-                gridPoints = [
-                    {gridX: col, gridY: row + 1},
-                    {gridX: col + 1, gridY: row + 1}
-                ];
-            }
-        } else { // vertical
-            if (fence.position === 'left') {
-                gridPoints = [
-                    {gridX: col, gridY: row},
-                    {gridX: col, gridY: row + 1}
-                ];
-            } else { // right
-                gridPoints = [
-                    {gridX: col + 1, gridY: row},
-                    {gridX: col + 1, gridY: row + 1}
-                ];
-            }
-        }
-        
-        // Add this fence to each grid point it touches
-        gridPoints.forEach(point => {
-            const key = `${point.gridX},${point.gridY}`;
-            if (!gridPointMap.has(key)) {
-                gridPointMap.set(key, {
-                    gridX: point.gridX,
-                    gridY: point.gridY,
-                    fences: []
-                });
-            }
-            gridPointMap.get(key).fences.push({
-                type: fence.type,
-                direction: getDirectionFromGridPoint(point, fence, row, col)
-            });
-        });
-    });
-    
-    // Return only grid points that have multiple fences
-    return Array.from(gridPointMap.values()).filter(point => point.fences.length > 1);
-}
 
 // Helper function to determine the direction of a fence from a specific grid point
 function getDirectionFromGridPoint(gridPoint, fence, fenceRow, fenceCol) {
@@ -396,26 +427,13 @@ function getDirectionFromGridPoint(gridPoint, fence, fenceRow, fenceCol) {
     }
 }
 
-// Check if two sets of fence directions would create a cross pattern
-function wouldCreateCrossPattern(newFences, existingFences) {
-    const newHasHorizontal = newFences.some(f => f.direction === 'horizontal');
-    const newHasVertical = newFences.some(f => f.direction === 'vertical');
-    const existingHasHorizontal = existingFences.some(f => f.direction === 'horizontal');
-    const existingHasVertical = existingFences.some(f => f.direction === 'vertical');
-    
-    // Cross pattern occurs when:
-    // - New shape has both horizontal and vertical at this point, OR
-    // - Existing shape has both horizontal and vertical at this point, OR  
-    // - New shape has horizontal and existing has vertical, OR
-    // - New shape has vertical and existing has horizontal
-    return (newHasHorizontal && newHasVertical) ||
-           (existingHasHorizontal && existingHasVertical) ||
-           (newHasHorizontal && existingHasVertical) ||
-           (newHasVertical && existingHasHorizontal);
-}
-
 // Updated showFencePreview function to include grid point conflict check
 function showFencePreview(startRow, startCol) {
+    if (mustRollDice) {
+        showErrorMessage('Please roll the dice first!');
+        return;
+    }
+
     hideFencePreview(); // Clear any existing preview
     
     if (!selectedShape) return;
@@ -480,6 +498,12 @@ function showFencePreview(startRow, startCol) {
 
 // Updated placeFence function with the new check
 function placeFence(startRow, startCol) {
+
+    if (mustRollDice) {
+        showErrorMessage('Please roll the dice first!');
+        return;
+    }
+
     if (!selectedShape) {
         showErrorMessage('Please roll the dice and select a fence shape first!');
         return;
@@ -652,7 +676,7 @@ function clearAllShapes() {
     placedShapes.length = 0;
     fences.clear();
 }
-///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
 function determineFenceClass(fenceKey) {
     if (fenceKey.includes("top") || fenceKey.includes("bottom")) {
         return "fence-horizontal";
@@ -660,9 +684,6 @@ function determineFenceClass(fenceKey) {
         return "fence-vertical";
     }
 }
-
-
-
 
 function createRandomBushes() {
     bushes.clear();
@@ -735,11 +756,6 @@ function hasBushOverlap(startRow, startCol, shape) {
     });
 }
 
-
-
-
-
-
 function isValidPlacement(startRow, startCol, shape) {
     return shape.every(fence => {
         const row = startRow + fence.row;
@@ -758,78 +774,79 @@ function updateFenceDisplay() {
     // Add fence elements
     
     // First, log what fences are supposed to be rendered
-console.log('=== FENCE RENDERING DEBUG ===');
-console.log('Fences array contains:', fences);
-console.log('Number of fences to render:', fences.length);
+    console.log('=== FENCE RENDERING DEBUG ===');
+    console.log('Fences array contains:', fences);
+    console.log('Number of fences to render:', fences.length);
 
-// Clear any existing fences first to see what this function adds
-const existingFences = document.querySelectorAll('.fence');
-console.log('Existing fences on board before rendering:', existingFences.length);
+    // Clear any existing fences first to see what this function adds
+    const existingFences = document.querySelectorAll('.fence');
+    console.log('Existing fences on board before rendering:', existingFences.length);
 
-fences.forEach((fenceKey, index) => {
-    console.log(`Rendering fence ${index + 1}: ${fenceKey}`);
-    
-    const [row, col, position] = fenceKey.split('-');
-    const rowNum = parseInt(row);
-    const colNum = parseInt(col);
-    
-    const fenceEl = document.createElement('div');
-    fenceEl.className = 'fence';
-    fenceEl.setAttribute('data-fence-key', fenceKey); // Mark with original key
-    
-    if (position === 'top' || position === 'bottom') {
-        fenceEl.classList.add('fence-horizontal');
-        fenceEl.style.left = (colNum * 60 + 10) + 'px';
-        if (position === 'top') {
-            fenceEl.style.top = (rowNum * 60 + 8) + 'px';
+    fences.forEach((fenceKey, index) => {
+        console.log(`Rendering fence ${index + 1}: ${fenceKey}`);
+        
+        const [row, col, position] = fenceKey.split('-');
+        const rowNum = parseInt(row);
+        const colNum = parseInt(col);
+        
+        const fenceEl = document.createElement('div');
+        fenceEl.className = 'fence';
+        fenceEl.setAttribute('data-fence-key', fenceKey); // Mark with original key
+        
+        if (position === 'top' || position === 'bottom') {
+            fenceEl.classList.add('fence-horizontal');
+            fenceEl.style.left = (colNum * 60 + 10) + 'px';
+            if (position === 'top') {
+                fenceEl.style.top = (rowNum * 60 + 8) + 'px';
+            } else {
+                fenceEl.style.top = (rowNum * 60 + 68) + 'px';
+            }
         } else {
-            fenceEl.style.top = (rowNum * 60 + 68) + 'px';
+            fenceEl.classList.add('fence-vertical');
+            fenceEl.style.top = (rowNum * 60 + 10) + 'px';
+            if (position === 'left') {
+                fenceEl.style.left = (colNum * 60 + 8) + 'px';
+            } else {
+                fenceEl.style.left = (colNum * 60 + 68) + 'px';
+            }
         }
-    } else {
-        fenceEl.classList.add('fence-vertical');
-        fenceEl.style.top = (rowNum * 60 + 10) + 'px';
-        if (position === 'left') {
-            fenceEl.style.left = (colNum * 60 + 8) + 'px';
-        } else {
-            fenceEl.style.left = (colNum * 60 + 68) + 'px';
+        
+        document.getElementById('gameBoard').appendChild(fenceEl);
+    });
+
+    // After rendering, check what's actually on the board
+    const allFencesAfter = document.querySelectorAll('.fence');
+    console.log('Total fences on board after rendering:', allFencesAfter.length);
+
+    // List all fence elements and their data-fence-key attributes
+    console.log('All fence elements on board:');
+    allFencesAfter.forEach((fence, index) => {
+        const fenceKey = fence.getAttribute('data-fence-key');
+        const position = `left: ${fence.style.left}, top: ${fence.style.top}`;
+        console.log(`  ${index + 1}. Key: ${fenceKey || 'UNKNOWN'}, Position: ${position}`);
+        
+        // Flag fences without keys (these might be from elsewhere)
+        if (!fenceKey) {
+            console.warn('    ⚠️  This fence has no data-fence-key - it may be from another source!');
         }
-    }
-    
-    document.getElementById('gameBoard').appendChild(fenceEl);
-});
+    });
 
-// After rendering, check what's actually on the board
-const allFencesAfter = document.querySelectorAll('.fence');
-console.log('Total fences on board after rendering:', allFencesAfter.length);
-
-// List all fence elements and their data-fence-key attributes
-console.log('All fence elements on board:');
-allFencesAfter.forEach((fence, index) => {
-    const fenceKey = fence.getAttribute('data-fence-key');
-    const position = `left: ${fence.style.left}, top: ${fence.style.top}`;
-    console.log(`  ${index + 1}. Key: ${fenceKey || 'UNKNOWN'}, Position: ${position}`);
-    
-    // Flag fences without keys (these might be from elsewhere)
-    if (!fenceKey) {
-        console.warn('    ⚠️  This fence has no data-fence-key - it may be from another source!');
-    }
-});
-
-console.log('=== END FENCE DEBUG ===');
+    console.log('=== END FENCE DEBUG ===');
 }
 
-function isProtected(row, col) {
-    // A sheep is protected if it's completely surrounded by fences or board edges
-    const directions = ['top', 'bottom', 'left', 'right'];
+// Add this function to your existing JavaScript code
+function updateSheepVisuals() {
+    // Remove all existing protected classes first
+    document.querySelectorAll('.sheep').forEach(sheepEl => {
+        sheepEl.classList.remove('protected');
+    });
     
-    return directions.every(dir => {
-        if (dir === 'top' && row === 0) return true;
-        if (dir === 'bottom' && row === 6) return true;
-        if (dir === 'left' && col === 0) return true;
-        if (dir === 'right' && col === 6) return true;
-        
-        const fenceKey = `${row}-${col}-${dir}`;
-        return fences.has(fenceKey);
+    // Add protected class to protected sheep
+    sheep.forEach(([row, col]) => {
+        const sheepEl = document.querySelector(`[data-row="${row}"][data-col="${col}"]`);
+        if (sheepEl && isProtected(row, col)) {
+            sheepEl.classList.add('protected');
+        }
     });
 }
 
@@ -842,6 +859,9 @@ function updateProtectedCount() {
     });
     
     document.getElementById('protectedCount').textContent = protectedCount;
+
+    // Add this line to update sheep visuals
+    updateSheepVisuals();
     
     if (protectedCount === 13) {
         setTimeout(() => {
@@ -850,14 +870,6 @@ function updateProtectedCount() {
     }
 }
 
-// function newGame() {
-//     initGame();
-//     selectedShape = null;
-//     currentDiceRoll = null;
-//     document.getElementById('dice').textContent = '?';
-//     document.getElementById('fenceShapes').innerHTML = '';
-//     hideFencePreview();
-// }
 function newGame() {
     initGame();
     selectedShape = null;
@@ -867,18 +879,166 @@ function newGame() {
     hideFencePreview();
 }
 
+// Enhanced intersection detection function
+function hasGridPointConflict(newStartRow, newStartCol, newShape) {
+    // Get all grid points where the new shape has fence lines
+    const newGridPoints = getGridPointsWithFences(newStartRow, newStartCol, newShape);
+    
+    // Check each existing placed shape
+    for (const placedShape of placedShapes) {
+        const existingGridPoints = getGridPointsWithFences(
+            placedShape.startRow, 
+            placedShape.startCol, 
+            placedShape.shape
+        );
+        
+        // Check if any grid points overlap
+        for (const newPoint of newGridPoints) {
+            for (const existingPoint of existingGridPoints) {
+                if (newPoint.gridX === existingPoint.gridX && newPoint.gridY === existingPoint.gridY) {
+                    // Same grid point - check if they would create a forbidden cross pattern
+                    if (wouldCreateForbiddenCrossPattern(newPoint.fences, existingPoint.fences)) {
+                        return true;
+                    }
+                }
+            }
+        }
+    }
+    
+    return false;
+}
+
+// Helper function to find grid points where a shape has fence lines
+function getGridPointsWithFences(startRow, startCol, shape) {
+    const gridPointMap = new Map();
+    
+    // For each fence in the shape, determine which grid points it touches
+    shape.forEach(fence => {
+        const row = startRow + fence.row;
+        const col = startCol + fence.col;
+        
+        let gridPoints = [];
+        
+        if (fence.type === 'horizontal') {
+            if (fence.position === 'top') {
+                gridPoints = [
+                    {gridX: col, gridY: row},
+                    {gridX: col + 1, gridY: row}
+                ];
+            } else { // bottom
+                gridPoints = [
+                    {gridX: col, gridY: row + 1},
+                    {gridX: col + 1, gridY: row + 1}
+                ];
+            }
+        } else { // vertical
+            if (fence.position === 'left') {
+                gridPoints = [
+                    {gridX: col, gridY: row},
+                    {gridX: col, gridY: row + 1}
+                ];
+            } else { // right
+                gridPoints = [
+                    {gridX: col + 1, gridY: row},
+                    {gridX: col + 1, gridY: row + 1}
+                ];
+            }
+        }
+        
+        // Add this fence to each grid point it touches
+        gridPoints.forEach(point => {
+            const key = `${point.gridX},${point.gridY}`;
+            if (!gridPointMap.has(key)) {
+                gridPointMap.set(key, {
+                    gridX: point.gridX,
+                    gridY: point.gridY,
+                    fences: []
+                });
+            }
+            gridPointMap.get(key).fences.push({
+                type: fence.type,
+                position: fence.position,
+                direction: getDirectionFromGridPoint(point, fence, row, col)
+            });
+        });
+    });
+    
+    return Array.from(gridPointMap.values());
+}
+
+// Helper function to determine the direction of a fence from a specific grid point
+function getDirectionFromGridPoint(gridPoint, fence, fenceRow, fenceCol) {
+    if (fence.type === 'horizontal') {
+        return 'horizontal';
+    } else {
+        return 'vertical';
+    }
+}
+
+// Updated function to check for forbidden cross patterns
+function wouldCreateForbiddenCrossPattern(newFences, existingFences) {
+    // Count directions for existing fences (from the same shape)
+    const existingHorizontalCount = existingFences.filter(f => f.direction === 'horizontal').length;
+    const existingVerticalCount = existingFences.filter(f => f.direction === 'vertical').length;
+    
+    // Count directions for new fences (from the same shape)
+    const newHorizontalCount = newFences.filter(f => f.direction === 'horizontal').length;
+    const newVerticalCount = newFences.filter(f => f.direction === 'vertical').length;
+    
+    // Forbidden pattern 1: Existing shape has left AND right fences (2 vertical lines)
+    // and new shape has top AND/OR bottom fences (horizontal lines)
+    if (existingVerticalCount >= 2 && newHorizontalCount >= 1) {
+        // Check if existing shape actually has both left and right at this grid point
+        const hasLeft = existingFences.some(f => f.position === 'left');
+        const hasRight = existingFences.some(f => f.position === 'right');
+        
+        if (hasLeft && hasRight) {
+            return true;
+        }
+    }
+    
+    // Forbidden pattern 2: Existing shape has top AND bottom fences (2 horizontal lines)
+    // and new shape has left AND/OR right fences (vertical lines)
+    if (existingHorizontalCount >= 2 && newVerticalCount >= 1) {
+        // Check if existing shape actually has both top and bottom at this grid point
+        const hasTop = existingFences.some(f => f.position === 'top');
+        const hasBottom = existingFences.some(f => f.position === 'bottom');
+        
+        if (hasTop && hasBottom) {
+            return true;
+        }
+    }
+    
+    // Forbidden pattern 3: New shape has left AND right fences (2 vertical lines)
+    // and existing shape has top AND/OR bottom fences (horizontal lines)
+    if (newVerticalCount >= 2 && existingHorizontalCount >= 1) {
+        // Check if new shape actually has both left and right at this grid point
+        const newHasLeft = newFences.some(f => f.position === 'left');
+        const newHasRight = newFences.some(f => f.position === 'right');
+        
+        if (newHasLeft && newHasRight) {
+            return true;
+        }
+    }
+    
+    // Forbidden pattern 4: New shape has top AND bottom fences (2 horizontal lines)
+    // and existing shape has left AND/OR right fences (vertical lines)
+    if (newHorizontalCount >= 2 && existingVerticalCount >= 1) {
+        // Check if new shape actually has both top and bottom at this grid point
+        const newHasTop = newFences.some(f => f.position === 'top');
+        const newHasBottom = newFences.some(f => f.position === 'bottom');
+        
+        if (newHasTop && newHasBottom) {
+            return true;
+        }
+    }
+    
+    return false;
+}
+
+
 // Initialize the game
 initGame();
 
-
-
-
-
-
-
-
-
-
-
-
+//////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 

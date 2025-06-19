@@ -5,37 +5,44 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>13 Sheep Game</title>
     <link rel="stylesheet" href="style.css"/>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Didact+Gothic&display=swap" rel="stylesheet">
     
 </head>
 <body>
     <div class="game-container">
-        <h1>🐑 13 Sheep Protection Game 🐑</h1>
-        <div>Rolls Remaining: <span id="rollsRemaining">10</span></div>
+        <h1>🐑 13 Sheep 🐑</h1>
         <div class="instructions">
-            <strong>How to Play:</strong> Roll the dice to get a fence shape, then click on the board to place fences and protect your sheep! Choose different orientations by clicking the shape options below. Hover over cells to see fence preview. Fences cannot overlap with existing ones!
+            <strong>How to Play:</strong> Roll the die to get a fence shape, then click on the board to place fences and protect your sheep! Choose different orientations by clicking the shape options below. Hover over cells to see fence preview. Fences cannot overlap or intersect with existing ones! 
         </div>
-
-        <div class="error-message" id="errorMessage"></div>
 
         <div class="status">
             <div class="protected-count">Protected Sheep: <span id="protectedCount">0</span> / 13</div>
         </div>
-
+        
+        <div class="rolls-container">
+            <div class="rolls-remaining">🎲 Rolls Remaining: <span id="rollsRemaining">10</span></div>
+        </div>
+        
         <div class="game-board" id="gameBoard"></div>
 
         <div class="controls">
             <div class="dice-section">
-                <div class="dice" id="dice" onclick="rollDice()">?</div>
                 <button class="btn" onclick="rollDice()">Roll Dice</button>
+                <div class="dice" id="dice" onclick="rollDice()">?</div>
             </div>
             
             <div class="fence-shapes" id="fenceShapes">
                 <!-- Fence shape options will be populated here -->
             </div>
             
-            <button class="btn" onclick="newGame()" style="background: linear-gradient(135deg, #4596d4, #19608f); bottom: 1rem;">New Game</button>
         </div>
+        <div class="error-message" id="errorMessage" style="justify-content: center;"></div>
+        <div style="justify-content: center; display: flex;"><button class="btn" onclick="newGame()" style="background: linear-gradient(135deg, #4596d4, #19608f); bottom: 1rem;">New Game</button></div>
+
     </div>
+
 
     <script src="script.js"></script>
 </body>
