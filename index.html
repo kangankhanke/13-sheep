@@ -11,12 +11,8 @@
     
 </head>
 <body>
-    <div class="game-container">
+     <div class="game-container">
         <h1>🐑 13 Sheep 🐑</h1>
-        <div class="instructions">
-            <strong>How to Play:</strong> Roll the die to get a fence shape, then click on the board to place fences and protect your sheep! Choose different orientations by clicking the shape options below. Hover over cells to see fence preview. Fences cannot overlap or intersect with existing ones! 
-        </div>
-
         <div class="status">
             <div class="protected-count">Protected Sheep: <span id="protectedCount">0</span> / 13</div>
         </div>
@@ -36,12 +32,56 @@
             <div class="fence-shapes" id="fenceShapes">
                 <!-- Fence shape options will be populated here -->
             </div>
-            
         </div>
-        <div class="error-message" id="errorMessage" style="justify-content: center;"></div>
-        <div style="justify-content: center; display: flex;"><button class="btn" onclick="newGame()" style="background: linear-gradient(135deg, #4596d4, #19608f); bottom: 1rem;">New Game</button></div>
-
+        
+        <div class="error-message" id="errorMessage"></div>
+        
+        <!-- Centered button container -->
+        <div class="button-container">
+            <button class="new-game-btn" onclick="newGame()">New Game</button>
+            <button class="how-to-play-btn" onclick="openInstructions()">How to Play</button>
+        </div>
     </div>
+        
+    <!-- Instructions Modal -->
+    <div id="instructionsModal" class="modal">
+        <div class="modal-content">
+            <span class="close" onclick="closeInstructions()">&times;</span>
+            <h2>🐑 How to Play 13 Sheep 🐑</h2>
+            <div class="instructions-content">
+                <div class="emoji-section">
+                    <strong>🎯 Goal:</strong> Protect all 13 sheep by surrounding them with fences!
+                </div>
+
+                <h3>🎲 Game Rules:</h3>
+                <ul>
+                    <li><strong>Roll the dice</strong> to get a fence shape</li>
+                    <li><strong>Choose orientation</strong> by clicking the shape options below the dice</li>
+                    <li><strong>Place fences</strong> by clicking on the board - hover to see preview</li>
+                    <li><strong>Protect sheep</strong> by completely surrounding them with fences</li>
+                    <li>You have <strong>10 rolls</strong> to protect all sheep</li>
+                </ul>
+
+                <h3>🚫 Important Restrictions:</h3>
+                <ul>
+                    <li>Fences <strong>cannot overlap</strong> or intersect with existing ones</li>
+                    <li>You <strong>cannot place fences on bushes</strong> (dotted lines with 🌳)</li>
+                    <li>Bushes <strong>do not protect</strong> your sheep</li>
+                </ul>
+
+                <h3>🏆 Winning:</h3>
+                <ul>
+                    <li></li>
+
+                </ul>
+
+                <div class="emoji-section">
+                    <strong>💡 Tip:</strong> Try to create efficient enclosed areas that can protect multiple sheep at once!
+                </div>
+            </div>
+        </div>
+    </div>
+
 
 
     <script src="script.js"></script>

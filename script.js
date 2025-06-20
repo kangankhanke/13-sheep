@@ -379,7 +379,29 @@ function showFenceOptions(roll) {
         shapeDiv.className = 'shape-option';
         shapeDiv.onclick = () => selectShape(roll, index);
         
-        // Draw the shape preview
+        // Calculate the bounding box of the shape to center it
+        let minRow = Infinity, maxRow = -Infinity;
+        let minCol = Infinity, maxCol = -Infinity;
+        
+        shape.forEach(fence => {
+            minRow = Math.min(minRow, fence.row);
+            maxRow = Math.max(maxRow, fence.row);
+            minCol = Math.min(minCol, fence.col);
+            maxCol = Math.max(maxCol, fence.col);
+        });
+        
+        // Calculate the center offset for the shape
+        const shapeWidth = (maxCol - minCol + 1) * 20;
+        const shapeHeight = (maxRow - minRow + 1) * 20;
+        
+        // Assuming the shape-option button is around 60px x 60px (adjust as needed)
+        const buttonWidth = 60;
+        const buttonHeight = 60;
+        
+        const offsetX = (buttonWidth - shapeWidth) / 2 - minCol * 20;
+        const offsetY = (buttonHeight - shapeHeight) / 2 - minRow * 20;
+        
+        // Draw the shape preview with centering offset
         shape.forEach(fence => {
             const fenceEl = document.createElement('div');
             fenceEl.className = 'shape-fence';
@@ -387,13 +409,17 @@ function showFenceOptions(roll) {
             if (fence.type === 'horizontal') {
                 fenceEl.style.width = '20px';
                 fenceEl.style.height = '3px';
-                fenceEl.style.left = (fence.col * 20 + 10) + 'px';
-                fenceEl.style.top = fence.position === 'top' ? (fence.row * 20 + 8) + 'px' : (fence.row * 20 + 29) + 'px';
+                fenceEl.style.left = (fence.col * 20 + 10 + offsetX) + 'px';
+                fenceEl.style.top = fence.position === 'top' ? 
+                    (fence.row * 20 + 8 + offsetY) + 'px' : 
+                    (fence.row * 20 + 29 + offsetY) + 'px';
             } else {
                 fenceEl.style.width = '3px';
                 fenceEl.style.height = '20px';
-                fenceEl.style.top = (fence.row * 20 + 10) + 'px';
-                fenceEl.style.left = fence.position === 'left' ? (fence.col * 20 + 8) + 'px' : (fence.col * 20 + 29) + 'px';
+                fenceEl.style.top = (fence.row * 20 + 10 + offsetY) + 'px';
+                fenceEl.style.left = fence.position === 'left' ? 
+                    (fence.col * 20 + 8 + offsetX) + 'px' : 
+                    (fence.col * 20 + 29 + offsetX) + 'px';
             }
             
             shapeDiv.appendChild(fenceEl);
@@ -601,6 +627,243 @@ function placeFence(startRow, startCol) {
     }, 100);
 }
 }
+
+
+
+
+// function showFenceOptions(roll) {
+//     const shapesContainer = document.getElementById('fenceShapes');
+//     shapesContainer.innerHTML = '';
+    
+//     const shapes = fenceShapes[roll];
+    
+//     shapes.forEach((shape, index) => {
+//         const shapeDiv = document.createElement('div');
+//         shapeDiv.className = 'shape-option';
+//         shapeDiv.onclick = () => selectShape(roll, index);
+        
+//         // Draw the shape preview
+//         shape.forEach(fence => {
+//             const fenceEl = document.createElement('div');
+//             fenceEl.className = 'shape-fence';
+            
+//             if (fence.type === 'horizontal') {
+//                 fenceEl.style.width = '20px';
+//                 fenceEl.style.height = '3px';
+//                 fenceEl.style.left = (fence.col * 20 + 10) + 'px';
+//                 fenceEl.style.top = fence.position === 'top' ? (fence.row * 20 + 8) + 'px' : (fence.row * 20 + 29) + 'px';
+//             } else {
+//                 fenceEl.style.width = '3px';
+//                 fenceEl.style.height = '20px';
+//                 fenceEl.style.top = (fence.row * 20 + 10) + 'px';
+//                 fenceEl.style.left = fence.position === 'left' ? (fence.col * 20 + 8) + 'px' : (fence.col * 20 + 29) + 'px';
+//             }
+            
+//             shapeDiv.appendChild(fenceEl);
+//         });
+        
+//         shapesContainer.appendChild(shapeDiv);
+//     });
+// }
+
+// function selectShape(roll, shapeIndex) {
+//     selectedShape = { roll, shapeIndex };
+    
+//     // Update visual selection
+//     document.querySelectorAll('.shape-option').forEach(el => el.classList.remove('selected'));
+//     document.querySelectorAll('.shape-option')[shapeIndex].classList.add('selected');
+    
+//     hideErrorMessage();
+// }
+
+// // Store placed shapes instead of just fence keys
+// const placedShapes = []; // Array to store {startRow, startCol, shape, roll, shapeIndex}
+
+// // Helper function to determine the direction of a fence from a specific grid point
+// function getDirectionFromGridPoint(gridPoint, fence, fenceRow, fenceCol) {
+//     if (fence.type === 'horizontal') {
+//         // For horizontal fences, direction is always left-right from any grid point
+//         return 'horizontal';
+//     } else {
+//         // For vertical fences, direction is always up-down from any grid point
+//         return 'vertical';
+//     }
+// }
+
+// // Updated showFencePreview function to include grid point conflict check
+// function showFencePreview(startRow, startCol) {
+//     if (mustRollDice) {
+//         showErrorMessage('Please roll the dice first!');
+//         return;
+//     }
+
+//     hideFencePreview(); // Clear any existing preview
+    
+//     if (!selectedShape) return;
+    
+//     const shape = fenceShapes[selectedShape.roll][selectedShape.shapeIndex];
+    
+//     // Check if placement is valid (within bounds)
+//     const isWithinBounds = isValidPlacement(startRow, startCol, shape);
+//     // Check if there's any overlap
+//     const hasOverlapping = isWithinBounds && hasOverlap(startRow, startCol, shape);
+//     // Check for geometric intersections
+//     const hasGeometricIntersections = isWithinBounds && hasGeometricIntersection(startRow, startCol, shape);
+//     // Check for grid point conflicts
+//     const hasGridPointConflicts = isWithinBounds && hasGridPointConflict(startRow, startCol, shape);
+//     const hasBushConflicts = isWithinBounds && hasBushOverlap(startRow, startCol, shape);
+//     if (!isWithinBounds) return;
+    
+//     const isInvalid = hasOverlapping || hasGeometricIntersections || hasGridPointConflicts || hasBushConflicts;
+    
+//     // Show preview fences
+//     shape.forEach(fence => {
+//         const row = startRow + fence.row;
+//         const col = startCol + fence.col;
+        
+//         const previewEl = document.createElement('div');
+//         previewEl.className = 'fence-preview';
+//         previewEl.classList.add('fence-preview-element'); // For easy removal
+        
+//         // Mark as invalid if any conflict exists
+//         if (isInvalid) {
+//             previewEl.classList.add('fence-preview-invalid');
+//         }
+        
+//         if (fence.type === 'horizontal') {
+//             previewEl.classList.add('fence-preview-horizontal');
+//             previewEl.style.left = (col * 60 + 10) + 'px';
+//             if (fence.position === 'top') {
+//                 previewEl.style.top = (row * 60 + 8) + 'px';
+//             } else {
+//                 previewEl.style.top = (row * 60 + 68) + 'px';
+//             }
+//         } else {
+//             previewEl.classList.add('fence-preview-vertical');
+//             previewEl.style.top = (row * 60 + 10) + 'px';
+//             if (fence.position === 'left') {
+//                 previewEl.style.left = (col * 60 + 8) + 'px';
+//             } else {
+//                 previewEl.style.left = (col * 60 + 68) + 'px';
+//             }
+//         }
+        
+//         document.getElementById('gameBoard').appendChild(previewEl);
+//     });
+
+//     // Visual feedback for the cell
+//     const cell = document.querySelector(`[data-row="${startRow}"][data-col="${startCol}"]`);
+//     if (isInvalid) {
+//         cell.classList.add('invalid-placement');
+//         setTimeout(() => cell.classList.remove('invalid-placement'), 500);
+//     }
+// }
+
+// // Updated placeFence function with the new check
+// function placeFence(startRow, startCol) {
+
+//     if (mustRollDice) {
+//         showErrorMessage('Please roll the dice first!');
+//         return;
+//     }
+
+//     if (!selectedShape) {
+//         showErrorMessage('Please roll the dice and select a fence shape first!');
+//         return;
+//     }
+    
+//     const shape = fenceShapes[selectedShape.roll][selectedShape.shapeIndex];
+    
+//     // Check if placement is valid (within bounds)
+//     if (!isValidPlacement(startRow, startCol, shape)) {
+//         showErrorMessage('Cannot place fence here - it would go outside the board!');
+//         return;
+//     }
+    
+//     // Check for overlapping fences
+//     if (hasOverlap(startRow, startCol, shape)) {
+//         showErrorMessage('Cannot place fence here - it overlaps with existing fences!');
+//         return;
+//     }
+    
+//     // Check for geometric intersections with existing shapes
+//     if (hasGeometricIntersection(startRow, startCol, shape)) {
+//         showErrorMessage('Cannot place fence here - it intersects with existing fence lines!');
+//         return;
+//     }
+    
+//     // NEW CHECK: Check for grid point conflicts (cross patterns)
+//     if (hasGridPointConflict(startRow, startCol, shape)) {
+//         showErrorMessage('Cannot place fence here - it would create crossing fence lines at a grid point!');
+//         return;
+//     }
+
+
+//     // In placeFence(), add this check after existing checks:
+//     if (hasBushOverlap(startRow, startCol, shape)) {
+//         showErrorMessage('Cannot place fence here - it overlaps with bush barriers!');
+//         return;
+// }
+    
+//     // Store the placed shape
+//     placedShapes.push({startRow, startCol, shape, roll: selectedShape.roll, shapeIndex: selectedShape.shapeIndex});
+    
+//     // Place the fences with modified logic for boundary fences
+//     shape.forEach(fence => {
+//         const row = startRow + fence.row;
+//         const col = startCol + fence.col;
+//         const fenceKey1 = `${row}-${col}-${fence.position}`;
+//         fences.add(fenceKey1);
+//         console.log('Added fence:', fenceKey1);
+
+//         // Check if this is a boundary fence that should not have an adjacent fence stored
+//         const isTopBoundary = (row === 0 && fence.position === 'top');
+//         const isLeftBoundary = (col === 0 && fence.position === 'left');
+        
+//         if (isTopBoundary || isLeftBoundary) {
+//             // For boundary fences, store the same fenceKey1 again (as requested)
+//             fences.add(fenceKey1);
+//             console.log('Added boundary fence (same as fenceKey1):', fenceKey1);
+//         } else {
+//             // For non-boundary fences, calculate and store the adjacent fence
+//             let adjacentRow = row, adjacentCol = col, oppositePosition = '';
+//             if (fence.position === 'top') {
+//                 adjacentRow = row - 1;
+//                 oppositePosition = 'bottom';
+//             } else if (fence.position === 'bottom') {
+//                 adjacentRow = row + 1;
+//                 oppositePosition = 'top';
+//             } else if (fence.position === 'left') {
+//                 adjacentCol = col - 1;
+//                 oppositePosition = 'right';
+//             } else if (fence.position === 'right') {
+//                 adjacentCol = col + 1;
+//                 oppositePosition = 'left';
+//             }
+
+//             const fenceKey2 = `${adjacentRow}-${adjacentCol}-${oppositePosition}`;
+//             fences.add(fenceKey2);
+//             console.log('Added adjacent/opposite fence:', fenceKey2);
+//         }
+//     });
+    
+//     updateFenceDisplay();
+//     updateProtectedCount();
+//     selectedShape = null;
+//     document.querySelectorAll('.shape-option').forEach(el => el.classList.remove('selected'));
+//     hideFencePreview();
+//     hideErrorMessage();
+
+//     mustRollDice = true;
+
+//   // Check if game is over due to no more rolls
+//     if (rollsRemaining <= 0) {
+//     setTimeout(() => {
+//         const protectedCount = document.getElementById('protectedCount').textContent;
+//         alert(`Game Over! You protected ${protectedCount} out of 13 sheep.`);
+//     }, 100);
+// }
+// }
 
 
 function hasGeometricIntersection(newStartRow, newStartCol, newShape) {
@@ -1040,5 +1303,21 @@ function wouldCreateForbiddenCrossPattern(newFences, existingFences) {
 // Initialize the game
 initGame();
 
+// Modal functions
+        function openInstructions() {
+            document.getElementById('instructionsModal').style.display = 'block';
+        }
+
+        function closeInstructions() {
+            document.getElementById('instructionsModal').style.display = 'none';
+        }
+
+        // Close modal when clicking outside of it
+        window.onclick = function(event) {
+            const modal = document.getElementById('instructionsModal');
+            if (event.target === modal) {
+                modal.style.display = 'none';
+            }
+        }
 //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
