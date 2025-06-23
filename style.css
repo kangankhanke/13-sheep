@@ -29,7 +29,7 @@ body {
             padding: 20px;
             width: 200px;
             min-width: 200px;
-            border: 3px solid #d2691e;
+            border: 3px solid #ffac71;
             backdrop-filter: blur(10px);
             height: fit-content;
             position: sticky;
@@ -74,10 +74,10 @@ body {
         .reference-shape {
             width: 60px;
             height: 60px;
-            border: 1px solid #d2691e;
+            border:0px solid #d2691e;
             border-radius: 8px;
             position: relative;
-            background: #fde0b5;
+            background: #faead2;
             transition: all 0.2s;
         }
 
