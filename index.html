@@ -11,35 +11,91 @@
     
 </head>
 <body>
-     <div class="game-container">
-        <h1>🐑 13 Sheep 🐑</h1>
-        <div class="status">
-            <div class="protected-count">Protected Sheep: <span id="protectedCount">0</span> / 13</div>
-        </div>
-        
-        <div class="rolls-container">
-            <div class="rolls-remaining">🎲 Rolls Remaining: <span id="rollsRemaining">10</span></div>
-        </div>
-        
-        <div class="game-board" id="gameBoard"></div>
-
-        <div class="controls">
-            <div class="dice-section">
-                <button class="btn" onclick="rollDice()">Roll Dice</button>
-                <div class="dice" id="dice" onclick="rollDice()">?</div>
+     <div class="main-layout">
+        <!-- Left side shape reference (dice 1, 3, 5) -->
+        <div class="shape-reference">
+            <h3> Dice Shapes</h3>
+            
+            <div class="dice-shape-group">
+                <div class="dice-number">1</div>
+                <div class="reference-shapes" id="shapes-1">
+                    <!-- Shapes for dice 1 will be populated here -->
+                </div>
             </div>
             
-            <div class="fence-shapes" id="fenceShapes">
-                <!-- Fence shape options will be populated here -->
+            <div class="dice-shape-group">
+                <div class="dice-number">3</div>
+                <div class="reference-shapes" id="shapes-3">
+                    <!-- Shapes for dice 3 will be populated here -->
+                </div>
+            </div>
+            
+            <div class="dice-shape-group">
+                <div class="dice-number">5</div>
+                <div class="reference-shapes" id="shapes-5">
+                    <!-- Shapes for dice 5 will be populated here -->
+                </div>
             </div>
         </div>
-        
-        <div class="error-message" id="errorMessage"></div>
-        
-        <!-- Centered button container -->
-        <div class="button-container">
-            <button class="new-game-btn" onclick="newGame()">New Game</button>
-            <button class="how-to-play-btn" onclick="openInstructions()">How to Play</button>
+
+        <!-- Main game container -->
+        <div class="game-container">
+            <h1> 13 Sheep </h1>
+            <div class="status">
+                <div class="protected-count">Protected Sheep: <span id="protectedCount">0</span> / 13</div>
+            </div>
+            
+            <div class="rolls-container">
+                <div class="rolls-remaining"> Rolls Remaining: <span id="rollsRemaining">10</span></div>
+            </div>
+            
+            <div class="game-board" id="gameBoard"></div>
+
+            <div class="controls">
+                <div class="dice-section">
+                    <button class="btn" onclick="rollDice()">Roll Dice</button>
+                    <div class="dice" id="dice" onclick="rollDice()">?</div>
+                </div>
+                
+                <div class="fence-shapes" id="fenceShapes">
+                    <!-- Fence shape options will be populated here -->
+                </div>
+            </div>
+            
+            <div class="error-message" id="errorMessage"></div>
+            
+            <div class="button-container">
+                <button class="replay-game-btn" onclick="replayGame()">Replay Same Board</button>
+                <button class="new-game-btn" onclick="newGame()">New Random Board</button>
+                <button class="how-to-play-btn" onclick="openInstructions()">How to Play</button>
+                <button class="print-board-btn" onclick="downloadPrintableBoard()">Download Printable Board</button>
+            </div>
+        </div>
+
+        <!-- Right side shape reference (dice 2, 4, 6) -->
+        <div class="shape-reference">
+            <h3> Dice Shapes</h3>
+            
+            <div class="dice-shape-group">
+                <div class="dice-number">2</div>
+                <div class="reference-shapes" id="shapes-2">
+                    <!-- Shapes for dice 2 will be populated here -->
+                </div>
+            </div>
+            
+            <div class="dice-shape-group">
+                <div class="dice-number">4</div>
+                <div class="reference-shapes" id="shapes-4">
+                    <!-- Shapes for dice 4 will be populated here -->
+                </div>
+            </div>
+            
+            <div class="dice-shape-group">
+                <div class="dice-number">6</div>
+                <div class="reference-shapes" id="shapes-6">
+                    <!-- Shapes for dice 6 will be populated here -->
+                </div>
+            </div>
         </div>
     </div>
         
@@ -47,13 +103,13 @@
     <div id="instructionsModal" class="modal">
         <div class="modal-content">
             <span class="close" onclick="closeInstructions()">&times;</span>
-            <h2>🐑 How to Play 13 Sheep 🐑</h2>
+            <h2> How to Play 13 Sheep </h2>
             <div class="instructions-content">
                 <div class="emoji-section">
-                    <strong>🎯 Goal:</strong> Protect all 13 sheep by surrounding them with fences!
+                    <strong> Goal:</strong> Protect all 13 sheep by surrounding them with fences!
                 </div>
-
-                <h3>🎲 Game Rules:</h3>
+                  
+                <h3> Game Rules:</h3>
                 <ul>
                     <li><strong>Roll the dice</strong> to get a fence shape</li>
                     <li><strong>Choose orientation</strong> by clicking the shape options below the dice</li>
@@ -62,27 +118,24 @@
                     <li>You have <strong>10 rolls</strong> to protect all sheep</li>
                 </ul>
 
-                <h3>🚫 Important Restrictions:</h3>
+                <h3> Important Restrictions:</h3>
                 <ul>
                     <li>Fences <strong>cannot overlap</strong> or intersect with existing ones</li>
                     <li>You <strong>cannot place fences on bushes</strong> (dotted lines with 🌳)</li>
                     <li>Bushes <strong>do not protect</strong> your sheep</li>
                 </ul>
 
-                <h3>🏆 Winning:</h3>
+                <h3> Winning:</h3>
                 <ul>
-                    <li></li>
-
+                    <li>Protect all 13 sheep to win!</li>
                 </ul>
 
                 <div class="emoji-section">
-                    <strong>💡 Tip:</strong> Try to create efficient enclosed areas that can protect multiple sheep at once!
+                    <strong> Tip:</strong> Try to create efficient enclosed areas that can protect multiple sheep at once! Use the shape reference guides on the sides to plan your strategy.
                 </div>
             </div>
         </div>
     </div>
-
-
 
     <script src="script.js"></script>
 </body>

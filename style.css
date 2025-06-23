@@ -5,11 +5,90 @@ body {
             background: linear-gradient(135deg, #f9d1b8, #fdd5c6);
             min-height: 100vh;
             display: flex;
-            flex-direction: column;
-            align-items: center;
+            justify-content: center;
+            align-items: flex-start;
             font-family: "Didact Gothic", sans-serif;
             font-weight: 400;
             font-style: normal;
+            gap: 20px;
+        }
+
+        .main-layout {
+            display: flex;
+            gap: 20px;
+            max-width: 1400px;
+            width: 100%;
+            align-items: flex-start;
+            justify-content: center;
+        }
+
+        .shape-reference {
+            background: rgba(255, 245, 230, 0.9);
+            border-radius: 15px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+            padding: 20px;
+            width: 200px;
+            min-width: 200px;
+            border: 3px solid #d2691e;
+            backdrop-filter: blur(10px);
+            height: fit-content;
+            position: sticky;
+            top: 20px;
+        }
+
+        .shape-reference h3 {
+            text-align: center;
+            color: #8b4513;
+            margin-bottom: 20px;
+            font-size: 1.2em;
+            text-shadow: 1px 1px 2px rgba(0,0,0,0.1);
+        }
+
+        .dice-shape-group {
+            margin-bottom: 25px;
+            background: rgba(255, 235, 204, 0.8);
+            padding: 15px;
+            border-radius: 10px;
+            border: 2px solid rgba(210, 105, 30, 0.3);
+        }
+
+        .dice-number {
+            text-align: center;
+            font-size: 24px;
+            font-weight: bold;
+            color: #ff4500;
+            margin-bottom: 10px;
+            background: #fff5e6;
+            border: 2px solid #d2691e;
+            border-radius: 8px;
+            padding: 5px;
+        }
+
+        .reference-shapes {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+            align-items: center;
+        }
+
+        .reference-shape {
+            width: 60px;
+            height: 60px;
+            border: 1px solid #d2691e;
+            border-radius: 8px;
+            position: relative;
+            background: #fde0b5;
+            transition: all 0.2s;
+        }
+
+        .reference-shape:hover {
+            transform: scale(1.05);
+            background: #fbc09b;
+        }
+
+        .reference-fence {
+            position: absolute;
+            background: #8b4513;
         }
 
         .game-container {
@@ -19,8 +98,8 @@ body {
             padding: 30px;
             max-width: 800px;
             width: 100%;
-            justify-content: center;
             border: 3px solid #d2691e;
+            flex-shrink: 0;
         }
 
         h1 {
@@ -200,19 +279,16 @@ body {
         }
 
         .btn {
-            
             color: white;
-            /*border: none;*/
             padding: 12px 24px;
             border-radius: 20px;
-            font-family: "Didact Gothic", sans-serif; /* Change this to your desired font */
+            font-family: "Didact Gothic", sans-serif;
             font-weight: bold;
             font-size: 16px;
             cursor: pointer;
             transition: all 0.3s;
             box-shadow: 0 4px 8px rgba(0,0,0,0.2);
             margin-top: 3rem;
-            /*border: 2px solid #d2691e;*/
             display: inline-block;
             text-align: center;
             margin: 20px 0;
@@ -222,7 +298,6 @@ body {
             border: 2px solid rgba(255, 255, 255, 0.2);
             backdrop-filter: blur(10px);
         }
-        
 
         .btn:hover {
             transform: translateY(-2px);
@@ -251,7 +326,7 @@ body {
         .shape-option:hover {
             border-color: #ff8c42;
             transform: scale(1.05);
-            background: #fbc09b ;
+            background: #fbc09b;
         }
 
         .shape-option.selected {
@@ -383,14 +458,13 @@ body {
             margin-bottom: 20px;
         }
 
-        /* Updated button styles to match the main button design */
-        .how-to-play-btn, .new-game-btn {
+        .how-to-play-btn, .new-game-btn, .replay-game-btn, .print-board-btn {
             background: linear-gradient(135deg, #ff8c42, #ff6b35);
             color: white;
             border: none;
             padding: 12px 24px;
             border-radius: 8px;
-            font-family: "Didact Gothic", sans-serif; /* Change this to your desired font */
+            font-family: "Didact Gothic", sans-serif;
             font-weight: bold;
             font-size: 16px;
             cursor: pointer;
@@ -401,7 +475,7 @@ body {
             display: inline-block;
         }
 
-        .how-to-play-btn:hover, .new-game-btn:hover {
+        .how-to-play-btn:hover, .new-game-btn:hover, .replay-game-btn:hover, .print-board-btn:hover {
             transform: translateY(-2px);
             box-shadow: 0 6px 12px rgba(0,0,0,0.3);
             background: linear-gradient(135deg, #ff7f2a, #ff5722);
@@ -413,9 +487,9 @@ body {
             align-items: center;
             gap: 15px;
             margin: 20px 0;
+            flex-wrap: wrap;
         }
 
-        /* Popup Modal Styles */
         .modal {
             display: none;
             position: fixed;
@@ -503,4 +577,54 @@ body {
             border-radius: 10px;
             margin: 15px 0;
             border-left: 4px solid #ff8c42;
+        }
+
+        /* Responsive design */
+        @media (max-width: 1400px) {
+            .main-layout {
+                flex-direction: column;
+                align-items: center;
+            }
+            
+            .shape-reference {
+                width: 100%;
+                max-width: 800px;
+                position: static;
+            }
+            
+            .dice-shape-group {
+                display: flex;
+                gap: 15px;
+                align-items: center;
+                flex-wrap: wrap;
+                justify-content: center;
+            }
+            
+            .reference-shapes {
+                flex-direction: row;
+                gap: 10px;
+            }
+        }
+
+        @media (max-width: 768px) {
+            body {
+                padding: 10px;
+            }
+            
+            .shape-reference {
+                padding: 15px;
+            }
+            
+            .game-container {
+                padding: 20px;
+            }
+            
+            .dice-shape-group {
+                flex-wrap: wrap;
+                justify-content: center;
+            }
+            
+            .button-container {
+                flex-wrap: wrap;
+            }
         }

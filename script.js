@@ -6,6 +6,9 @@ let currentDiceRoll = null;
 let bushes = new Set(); // Store bush line positions
 let rollsRemaining = 10;
 let mustRollDice = true; // Player must roll dice before placing fence
+// Store the initial game state for replay option
+let initialSheepPositions = [];
+let initialBushes = new Set();
 
 //const placedFenceShapes = []; // global array to store placed fence shapes
 
@@ -95,12 +98,55 @@ function initGame() {
         board[row][col] = 'sheep';
         sheep.push([row, col]);
     }
-    createRandomBushes(); 
+    
+    // Store initial positions for replay
+    initialSheepPositions = [...sheep];
+    
+    createRandomBushes();
+    
+    // Store initial bushes for replay
+    initialBushes = new Set(bushes);
+    
     createBoard();
     updateProtectedCount();
     hideErrorMessage();
 }
-
+function replayGame() {
+    board = Array(7).fill().map(() => Array(7).fill(null));
+    sheep = [];
+    fences = new Set();
+    
+    // Reset game state variables
+    rollsRemaining = 10;
+    mustRollDice = true;
+    selectedShape = null;
+    currentDiceRoll = null;
+    
+    // Clear placed shapes array
+    placedShapes.length = 0;
+    
+    // Update display
+    document.getElementById('rollsRemaining').textContent = rollsRemaining;
+    
+    // Restore the same sheep positions
+    for (let i = 0; i < initialSheepPositions.length; i++) {
+        const [row, col] = initialSheepPositions[i];
+        board[row][col] = 'sheep';
+        sheep.push([row, col]);
+    }
+    
+    // Restore the same bush positions
+    bushes = new Set(initialBushes);
+    
+    createBoard();
+    updateProtectedCount();
+    hideErrorMessage();
+    
+    // Reset dice and shapes display
+    document.getElementById('dice').textContent = '?';
+    document.getElementById('fenceShapes').innerHTML = '';
+    hideFencePreview();
+}
 function createBoard() {
     const gameBoard = document.getElementById('gameBoard');
     gameBoard.innerHTML = '';
@@ -628,244 +674,6 @@ function placeFence(startRow, startCol) {
 }
 }
 
-
-
-
-// function showFenceOptions(roll) {
-//     const shapesContainer = document.getElementById('fenceShapes');
-//     shapesContainer.innerHTML = '';
-    
-//     const shapes = fenceShapes[roll];
-    
-//     shapes.forEach((shape, index) => {
-//         const shapeDiv = document.createElement('div');
-//         shapeDiv.className = 'shape-option';
-//         shapeDiv.onclick = () => selectShape(roll, index);
-        
-//         // Draw the shape preview
-//         shape.forEach(fence => {
-//             const fenceEl = document.createElement('div');
-//             fenceEl.className = 'shape-fence';
-            
-//             if (fence.type === 'horizontal') {
-//                 fenceEl.style.width = '20px';
-//                 fenceEl.style.height = '3px';
-//                 fenceEl.style.left = (fence.col * 20 + 10) + 'px';
-//                 fenceEl.style.top = fence.position === 'top' ? (fence.row * 20 + 8) + 'px' : (fence.row * 20 + 29) + 'px';
-//             } else {
-//                 fenceEl.style.width = '3px';
-//                 fenceEl.style.height = '20px';
-//                 fenceEl.style.top = (fence.row * 20 + 10) + 'px';
-//                 fenceEl.style.left = fence.position === 'left' ? (fence.col * 20 + 8) + 'px' : (fence.col * 20 + 29) + 'px';
-//             }
-            
-//             shapeDiv.appendChild(fenceEl);
-//         });
-        
-//         shapesContainer.appendChild(shapeDiv);
-//     });
-// }
-
-// function selectShape(roll, shapeIndex) {
-//     selectedShape = { roll, shapeIndex };
-    
-//     // Update visual selection
-//     document.querySelectorAll('.shape-option').forEach(el => el.classList.remove('selected'));
-//     document.querySelectorAll('.shape-option')[shapeIndex].classList.add('selected');
-    
-//     hideErrorMessage();
-// }
-
-// // Store placed shapes instead of just fence keys
-// const placedShapes = []; // Array to store {startRow, startCol, shape, roll, shapeIndex}
-
-// // Helper function to determine the direction of a fence from a specific grid point
-// function getDirectionFromGridPoint(gridPoint, fence, fenceRow, fenceCol) {
-//     if (fence.type === 'horizontal') {
-//         // For horizontal fences, direction is always left-right from any grid point
-//         return 'horizontal';
-//     } else {
-//         // For vertical fences, direction is always up-down from any grid point
-//         return 'vertical';
-//     }
-// }
-
-// // Updated showFencePreview function to include grid point conflict check
-// function showFencePreview(startRow, startCol) {
-//     if (mustRollDice) {
-//         showErrorMessage('Please roll the dice first!');
-//         return;
-//     }
-
-//     hideFencePreview(); // Clear any existing preview
-    
-//     if (!selectedShape) return;
-    
-//     const shape = fenceShapes[selectedShape.roll][selectedShape.shapeIndex];
-    
-//     // Check if placement is valid (within bounds)
-//     const isWithinBounds = isValidPlacement(startRow, startCol, shape);
-//     // Check if there's any overlap
-//     const hasOverlapping = isWithinBounds && hasOverlap(startRow, startCol, shape);
-//     // Check for geometric intersections
-//     const hasGeometricIntersections = isWithinBounds && hasGeometricIntersection(startRow, startCol, shape);
-//     // Check for grid point conflicts
-//     const hasGridPointConflicts = isWithinBounds && hasGridPointConflict(startRow, startCol, shape);
-//     const hasBushConflicts = isWithinBounds && hasBushOverlap(startRow, startCol, shape);
-//     if (!isWithinBounds) return;
-    
-//     const isInvalid = hasOverlapping || hasGeometricIntersections || hasGridPointConflicts || hasBushConflicts;
-    
-//     // Show preview fences
-//     shape.forEach(fence => {
-//         const row = startRow + fence.row;
-//         const col = startCol + fence.col;
-        
-//         const previewEl = document.createElement('div');
-//         previewEl.className = 'fence-preview';
-//         previewEl.classList.add('fence-preview-element'); // For easy removal
-        
-//         // Mark as invalid if any conflict exists
-//         if (isInvalid) {
-//             previewEl.classList.add('fence-preview-invalid');
-//         }
-        
-//         if (fence.type === 'horizontal') {
-//             previewEl.classList.add('fence-preview-horizontal');
-//             previewEl.style.left = (col * 60 + 10) + 'px';
-//             if (fence.position === 'top') {
-//                 previewEl.style.top = (row * 60 + 8) + 'px';
-//             } else {
-//                 previewEl.style.top = (row * 60 + 68) + 'px';
-//             }
-//         } else {
-//             previewEl.classList.add('fence-preview-vertical');
-//             previewEl.style.top = (row * 60 + 10) + 'px';
-//             if (fence.position === 'left') {
-//                 previewEl.style.left = (col * 60 + 8) + 'px';
-//             } else {
-//                 previewEl.style.left = (col * 60 + 68) + 'px';
-//             }
-//         }
-        
-//         document.getElementById('gameBoard').appendChild(previewEl);
-//     });
-
-//     // Visual feedback for the cell
-//     const cell = document.querySelector(`[data-row="${startRow}"][data-col="${startCol}"]`);
-//     if (isInvalid) {
-//         cell.classList.add('invalid-placement');
-//         setTimeout(() => cell.classList.remove('invalid-placement'), 500);
-//     }
-// }
-
-// // Updated placeFence function with the new check
-// function placeFence(startRow, startCol) {
-
-//     if (mustRollDice) {
-//         showErrorMessage('Please roll the dice first!');
-//         return;
-//     }
-
-//     if (!selectedShape) {
-//         showErrorMessage('Please roll the dice and select a fence shape first!');
-//         return;
-//     }
-    
-//     const shape = fenceShapes[selectedShape.roll][selectedShape.shapeIndex];
-    
-//     // Check if placement is valid (within bounds)
-//     if (!isValidPlacement(startRow, startCol, shape)) {
-//         showErrorMessage('Cannot place fence here - it would go outside the board!');
-//         return;
-//     }
-    
-//     // Check for overlapping fences
-//     if (hasOverlap(startRow, startCol, shape)) {
-//         showErrorMessage('Cannot place fence here - it overlaps with existing fences!');
-//         return;
-//     }
-    
-//     // Check for geometric intersections with existing shapes
-//     if (hasGeometricIntersection(startRow, startCol, shape)) {
-//         showErrorMessage('Cannot place fence here - it intersects with existing fence lines!');
-//         return;
-//     }
-    
-//     // NEW CHECK: Check for grid point conflicts (cross patterns)
-//     if (hasGridPointConflict(startRow, startCol, shape)) {
-//         showErrorMessage('Cannot place fence here - it would create crossing fence lines at a grid point!');
-//         return;
-//     }
-
-
-//     // In placeFence(), add this check after existing checks:
-//     if (hasBushOverlap(startRow, startCol, shape)) {
-//         showErrorMessage('Cannot place fence here - it overlaps with bush barriers!');
-//         return;
-// }
-    
-//     // Store the placed shape
-//     placedShapes.push({startRow, startCol, shape, roll: selectedShape.roll, shapeIndex: selectedShape.shapeIndex});
-    
-//     // Place the fences with modified logic for boundary fences
-//     shape.forEach(fence => {
-//         const row = startRow + fence.row;
-//         const col = startCol + fence.col;
-//         const fenceKey1 = `${row}-${col}-${fence.position}`;
-//         fences.add(fenceKey1);
-//         console.log('Added fence:', fenceKey1);
-
-//         // Check if this is a boundary fence that should not have an adjacent fence stored
-//         const isTopBoundary = (row === 0 && fence.position === 'top');
-//         const isLeftBoundary = (col === 0 && fence.position === 'left');
-        
-//         if (isTopBoundary || isLeftBoundary) {
-//             // For boundary fences, store the same fenceKey1 again (as requested)
-//             fences.add(fenceKey1);
-//             console.log('Added boundary fence (same as fenceKey1):', fenceKey1);
-//         } else {
-//             // For non-boundary fences, calculate and store the adjacent fence
-//             let adjacentRow = row, adjacentCol = col, oppositePosition = '';
-//             if (fence.position === 'top') {
-//                 adjacentRow = row - 1;
-//                 oppositePosition = 'bottom';
-//             } else if (fence.position === 'bottom') {
-//                 adjacentRow = row + 1;
-//                 oppositePosition = 'top';
-//             } else if (fence.position === 'left') {
-//                 adjacentCol = col - 1;
-//                 oppositePosition = 'right';
-//             } else if (fence.position === 'right') {
-//                 adjacentCol = col + 1;
-//                 oppositePosition = 'left';
-//             }
-
-//             const fenceKey2 = `${adjacentRow}-${adjacentCol}-${oppositePosition}`;
-//             fences.add(fenceKey2);
-//             console.log('Added adjacent/opposite fence:', fenceKey2);
-//         }
-//     });
-    
-//     updateFenceDisplay();
-//     updateProtectedCount();
-//     selectedShape = null;
-//     document.querySelectorAll('.shape-option').forEach(el => el.classList.remove('selected'));
-//     hideFencePreview();
-//     hideErrorMessage();
-
-//     mustRollDice = true;
-
-//   // Check if game is over due to no more rolls
-//     if (rollsRemaining <= 0) {
-//     setTimeout(() => {
-//         const protectedCount = document.getElementById('protectedCount').textContent;
-//         alert(`Game Over! You protected ${protectedCount} out of 13 sheep.`);
-//     }, 100);
-// }
-// }
-
-
 function hasGeometricIntersection(newStartRow, newStartCol, newShape) {
     const newLines = newShape.map(f => ({row: newStartRow + f.row, col: newStartCol + f.col, ...f}));
     
@@ -1319,5 +1127,338 @@ initGame();
                 modal.style.display = 'none';
             }
         }
+
+    // Function to create visual representation of fence shapes
+function createReferenceShapes() {
+    const fenceShapes = {
+        1: [
+            // U-shape orientations
+            [{type: 'horizontal', row: 0, col: 0, position: 'top'}, {type: 'horizontal', row: 0, col: 0, position: 'bottom'}, {type: 'vertical', row: 0, col: 0, position: 'right'}], // Top, Bottom, Right
+            [{type: 'vertical', row: 0, col: 0, position: 'left'}, {type: 'vertical', row: 0, col: 0, position: 'right'}, {type: 'horizontal', row: 0, col: 0, position: 'bottom'}], // Left, Right, Bottom
+            [{type: 'horizontal', row: 0, col: 0, position: 'top'}, {type: 'horizontal', row: 0, col: 0, position: 'bottom'}, {type: 'vertical', row: 0, col: 0, position: 'left'}], // Top, Bottom, Left
+            [{type: 'horizontal', row: 0, col: 0, position: 'top'}, {type: 'vertical', row: 0, col: 0, position: 'left'}, {type: 'vertical', row: 0, col: 0, position: 'right'}]  // Top, Left, Right
+        ],
+        2: [
+            // Long line orientations
+            [{type: 'horizontal', row: 0, col: 0, position: 'top'}, {type: 'horizontal', row: 0, col: 1, position: 'top'}], // Horizontal line across two cells top
+            [{type: 'vertical', row: 0, col: 0, position: 'right'}, {type: 'vertical', row: -1, col: 0, position: 'right'}], // Vertical line across two cells right
+            [{type: 'vertical', row: 0, col: 0, position: 'left'}, {type: 'vertical', row: -1, col: 0, position: 'left'}], // Vertical line across two cells left
+            [{type: 'horizontal', row: 0, col: 0, position: 'bottom'}, {type: 'horizontal', row: 0, col: 1, position: 'bottom'}] // Horizontal line across two cells bottom
+        ],
+        3: [
+            // L-shape orientations
+            [{type: 'horizontal', row: 0, col: 0, position: 'bottom'}, {type: 'vertical', row: 0, col: 0, position: 'left'}, {type: 'vertical', row: -1, col: 0, position: 'left'}], // Bottom, Left, Left-above
+            [{type: 'vertical', row: 0, col: 0, position: 'left'}, {type: 'horizontal', row: 0, col: 0, position: 'top'}, {type: 'horizontal', row: 0, col: 1, position: 'top'}], // Left, Top, Top-right
+            [{type: 'horizontal', row: 0, col: 0, position: 'top'}, {type: 'vertical', row: 0, col: 0, position: 'right'}, {type: 'vertical', row: 1, col: 0, position: 'right'}], // Top, Right, Right-below
+            [{type: 'horizontal', row: 0, col: 0, position: 'bottom'}, {type: 'vertical', row: 0, col: 0, position: 'right'}, {type: 'horizontal', row: 0, col: -1, position: 'bottom'}] // Bottom, Right, Bottom-left
+        ],
+        4: [
+            // Inverted L-shape orientations
+            [{type: 'horizontal', row: 0, col: 0, position: 'bottom'}, {type: 'vertical', row: 0, col: 0, position: 'right'}, {type: 'vertical', row: -1, col: 0, position: 'right'}], // Bottom, Right, Right-above
+            [{type: 'vertical', row: 0, col: 0, position: 'left'}, {type: 'horizontal', row: 0, col: 0, position: 'bottom'}, {type: 'horizontal', row: 0, col: 1, position: 'bottom'}], // Left, Bottom, Bottom-right
+            [{type: 'horizontal', row: 0, col: 0, position: 'top'}, {type: 'vertical', row: 0, col: 0, position: 'left'}, {type: 'vertical', row: 1, col: 0, position: 'left'}], // Top, Left, Left-below
+            [{type: 'horizontal', row: 0, col: 0, position: 'top'}, {type: 'vertical', row: 0, col: 0, position: 'right'}, {type: 'horizontal', row: 0, col: -1, position: 'top'}] // Top, Right, Top-left
+        ],
+        5: [
+            // Roll 5 - Two orientations
+            [{type: 'vertical', row: 0, col: 0, position: 'left'}, {type: 'horizontal', row: 0, col: 0, position: 'bottom'}, {type: 'vertical', row: 1, col: 0, position: 'right'}], // Left, Bottom, Right-below
+            [{type: 'horizontal', row: 0, col: 0, position: 'bottom'}, {type: 'vertical', row: 0, col: 0, position: 'right'}, {type: 'horizontal', row: 0, col: 1, position: 'top'}] // Bottom, Right, Top-right
+        ],
+        6: [
+            // Roll 6 - Two orientations
+            [{type: 'vertical', row: 0, col: 0, position: 'right'}, {type: 'horizontal', row: 0, col: 0, position: 'bottom'}, {type: 'vertical', row: 1, col: 0, position: 'left'}], // Right, Bottom, Left-below
+            [{type: 'horizontal', row: 0, col: 0, position: 'top'}, {type: 'vertical', row: 0, col: 0, position: 'right'}, {type: 'horizontal', row: 0, col: 1, position: 'bottom'}] // Top, Right, Bottom-right
+        ]
+    };
+
+    // Helper function to calculate fence position and size for reference display
+    function calculateReferenceFenceStyle(fence, cellSize = 60) {
+        const baseRow = 0;
+        const baseCol = 0;
+        
+        let left, top, width, height;
+        
+        if (fence.type === 'horizontal') {
+            width = cellSize;
+            height = 4;
+            left = (baseCol + fence.col) * cellSize;
+            
+            if (fence.position === 'top') {
+                top = (baseRow + fence.row) * cellSize - 2;
+            } else { // bottom
+                top = (baseRow + fence.row + 1) * cellSize - 2;
+            }
+        } else { // vertical
+            width = 4;
+            height = cellSize;
+            top = (baseRow + fence.row) * cellSize;
+            
+            if (fence.position === 'left') {
+                left = (baseCol + fence.col) * cellSize - 2;
+            } else { // right
+                left = (baseCol + fence.col + 1) * cellSize - 2;
+            }
+        }
+        
+        return { left, top, width, height };
+    }
+
+    // Create reference shapes for each dice number
+    Object.keys(fenceShapes).forEach(diceNum => {
+        const container = document.getElementById(`shapes-${diceNum}`);
+        if (!container) return;
+        
+        container.innerHTML = ''; // Clear existing content
+        
+        fenceShapes[diceNum].forEach((shape, index) => {
+            // Create shape container
+            const shapeDiv = document.createElement('div');
+            shapeDiv.className = 'reference-shape';
+            
+            // Calculate the bounds to center the shape
+            let minRow = 0, maxRow = 0, minCol = 0, maxCol = 0;
+            
+            shape.forEach(fence => {
+                const row = fence.row;
+                const col = fence.col;
+                
+                if (fence.type === 'horizontal' && fence.col === 1) {
+                    maxCol = Math.max(maxCol, col + 1);
+                } else if (fence.type === 'vertical' && fence.row === -1) {
+                    minRow = Math.min(minRow, row);
+                } else if (fence.type === 'vertical' && fence.row === 1) {
+                    maxRow = Math.max(maxRow, row + 1);
+                } else if (fence.type === 'horizontal' && fence.col === -1) {
+                    minCol = Math.min(minCol, col);
+                }
+                
+                minRow = Math.min(minRow, row);
+                maxRow = Math.max(maxRow, row);
+                minCol = Math.min(minCol, col);
+                maxCol = Math.max(maxCol, col);
+            });
+            
+            // Calculate scaling to fit in 60x60 container
+            const shapeWidth = (maxCol - minCol + 1) * 20; // 20px per cell in reference
+            const shapeHeight = (maxRow - minRow + 1) * 20;
+            const scale = Math.min(60 / shapeWidth, 60 / shapeHeight, 1);
+            const cellSize = 20 * scale;
+            
+            // Center offset
+            const offsetX = (60 - (maxCol - minCol + 1) * cellSize) / 2;
+            const offsetY = (60 - (maxRow - minRow + 1) * cellSize) / 2;
+            
+            // Add fences to shape
+            shape.forEach(fence => {
+                const fenceDiv = document.createElement('div');
+                fenceDiv.className = 'reference-fence';
+                
+                let left, top, width, height;
+                
+                if (fence.type === 'horizontal') {
+                    width = cellSize;
+                    height = 2 * scale;
+                    left = (fence.col - minCol) * cellSize + offsetX;
+                    
+                    if (fence.position === 'top') {
+                        top = (fence.row - minRow) * cellSize - scale + offsetY;
+                    } else { // bottom
+                        top = (fence.row - minRow + 1) * cellSize - scale + offsetY;
+                    }
+                } else { // vertical
+                    width = 2 * scale;
+                    height = cellSize;
+                    top = (fence.row - minRow) * cellSize + offsetY;
+                    
+                    if (fence.position === 'left') {
+                        left = (fence.col - minCol) * cellSize - scale + offsetX;
+                    } else { // right
+                        left = (fence.col - minCol + 1) * cellSize - scale + offsetX;
+                    }
+                }
+                
+                fenceDiv.style.left = `${left}px`;
+                fenceDiv.style.top = `${top}px`;
+                fenceDiv.style.width = `${width}px`;
+                fenceDiv.style.height = `${height}px`;
+                
+                shapeDiv.appendChild(fenceDiv);
+            });
+            
+            container.appendChild(shapeDiv);
+        });
+    });
+}
+
+// Call this function when the page loads or when you want to initialize the reference shapes
+document.addEventListener('DOMContentLoaded', function() {
+    createReferenceShapes();
+});
+
+// You can also call it manually if needed
+// createReferenceShapes();    
 //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
+function downloadPrintableBoard() {
+    // Create a new canvas element
+    const canvas = document.createElement('canvas');
+    const ctx = canvas.getContext('2d');
+    
+    // Set canvas size (A4 proportion, scaled for good quality)
+    canvas.width = 600;
+    canvas.height = 600;
+    
+    // Fill background with white
+    ctx.fillStyle = 'white';
+    ctx.fillRect(0, 0, canvas.width, canvas.height);
+    
+    // Draw game board background (white for B&W printing)
+    ctx.fillStyle = 'white';
+    ctx.fillRect(50, 50, 500, 500);
+    
+    // Draw grid points at intersections (no grid lines, just crosses)
+    ctx.fillStyle = 'black';
+    const cellSize = 500 / 7;
+    
+    for (let row = 0; row <= 7; row++) {
+        for (let col = 0; col <= 7; col++) {
+            const x = 50 + col * cellSize;
+            const y = 50 + row * cellSize;
+            
+            // Draw cross at each grid point
+            ctx.fillRect(x - 4, y - 1, 8, 2);
+            ctx.fillRect(x - 1, y - 4, 2, 8);
+        }
+    }
+    
+    // Draw sheep using grid coordinates instead of screen coordinates
+    ctx.font = '28px Arial';
+    ctx.textAlign = 'center';
+    ctx.textBaseline = 'middle';
+    ctx.fillStyle = 'black';
+    
+    // Get sheep positions from the current game board using data attributes or grid position
+    const cells = document.querySelectorAll('.cell');
+    cells.forEach((cell, index) => {
+        if (cell.textContent === '🐑') {
+            // Calculate grid position from cell index (7x7 grid of cells)
+            const row = Math.floor(index / 7);
+            const col = index % 7;
+            
+            // Convert grid coordinates to canvas coordinates (center of cell)
+            const cellSize = 500 / 7; // Each cell is 500/7 pixels
+            const canvasX = 50 + col * cellSize + cellSize / 2; // Center of cell
+            const canvasY = 50 + row * cellSize + cellSize / 2; // Center of cell
+            
+            ctx.fillText('🐑', canvasX, canvasY);
+        }
+    });
+    
+    // Draw bushes on the edges between cells (black dotted lines)
+    ctx.strokeStyle = 'black';
+    ctx.lineWidth = 3;
+    ctx.setLineDash([8, 4]); // Dotted line pattern
+    
+    // Parse bush positions from DOM
+    const bushLines = document.querySelectorAll('.bush-line');
+    bushLines.forEach(bush => {
+        // Get the bush's position relative to the game board
+        const gameBoard = document.getElementById('gameBoard');
+        const bushRect = bush.getBoundingClientRect();
+        const boardRect = gameBoard.getBoundingClientRect();
+        
+        // Calculate which edge this bush is on
+        const relativeLeft = bushRect.left - boardRect.left;
+        const relativeTop = bushRect.top - boardRect.top;
+        const relativeWidth = bushRect.width;
+        const relativeHeight = bushRect.height;
+        
+        // Determine if it's horizontal or vertical and calculate grid position
+        if (bush.classList.contains('bush-horizontal')) {
+            // Horizontal bush - spans between two cells horizontally
+            const row = Math.round((relativeTop - 10) / (420 / 7)); // 420 is the board size, 10 is padding
+            const col = Math.round((relativeLeft - 10) / (420 / 7));
+            
+            // Draw horizontal line on the edge between cells
+            const y = 50 + row * cellSize;
+            const startX = 50 + col * cellSize;
+            const endX = startX + cellSize;
+            
+            ctx.beginPath();
+            ctx.moveTo(startX, y);
+            ctx.lineTo(endX, y);
+            ctx.stroke();
+            
+            // Draw tree emoji centered on the line
+            ctx.setLineDash([]); // Reset to solid line for text
+            ctx.fillStyle = 'black';
+            ctx.font = '20px Arial'; // Slightly smaller font for better fit
+            //ctx.fillText('🌳', startX + cellSize/2, y);
+            ctx.setLineDash([8, 4]); // Back to dotted
+            
+        } else if (bush.classList.contains('bush-vertical')) {
+            // Vertical bush - spans between two cells vertically
+            const row = Math.round((relativeTop - 10) / (420 / 7));
+            const col = Math.round((relativeLeft - 10) / (420 / 7));
+            
+            // Draw vertical line on the edge between cells
+            const x = 50 + col * cellSize;
+            const startY = 50 + row * cellSize;
+            const endY = startY + cellSize;
+            
+            ctx.beginPath();
+            ctx.moveTo(x, startY);
+            ctx.lineTo(x, endY);
+            ctx.stroke();
+            
+            // // Draw tree emoji centered on the line
+            // ctx.setLineDash([]); // Reset to solid line for text
+            // ctx.fillStyle = 'black';
+            // ctx.font = '20px Arial'; // Slightly smaller font for better fit
+            // ctx.fillText('🌳', x, startY + cellSize/2);
+            // ctx.setLineDash([8, 4]); // Back to dotted
+        }
+    });
+    
+    // Reset line dash
+    ctx.setLineDash([]);
+    
+    // Add title
+    ctx.fillStyle = 'black';
+    ctx.font = 'bold 32px Arial';
+    ctx.textAlign = 'center';
+    ctx.fillText('13 Sheep - Printable Board', canvas.width/2, 30);
+    
+    // Add instructions at the bottom (updated to reflect no emojis)
+    ctx.font = '16px Arial';
+    ctx.fillStyle = 'black';
+    ctx.textAlign = 'left';
+   
+    
+    // Convert canvas to image and download
+    const link = document.createElement('a');
+    link.download = '13-sheep-board.png';
+    link.href = canvas.toDataURL('image/png');
+    
+    // Trigger download
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    
+    // Show confirmation message
+    const errorDiv = document.getElementById('errorMessage');
+    errorDiv.style.display = 'block';
+    errorDiv.style.background = 'rgba(34, 139, 34, 0.1)';
+    errorDiv.style.color = '#228b22';
+    errorDiv.style.borderLeft = '3px solid #228b22';
+    errorDiv.textContent = 'Printable board downloaded successfully!';
+    
+    // Hide message after 3 seconds
+    setTimeout(() => {
+        errorDiv.style.display = 'none';
+        // Reset error message styling
+        errorDiv.style.background = 'rgba(255, 69, 0, 0.1)';
+        errorDiv.style.color = '#cc2900';
+        errorDiv.style.borderLeft = '3px solid #ff4500';
+    }, 3000);
+}
