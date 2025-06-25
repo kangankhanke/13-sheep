@@ -2,7 +2,7 @@ body {
             font-family: 'Arial', sans-serif;
             margin: 0;
             padding: 20px;
-            background: linear-gradient(135deg, #f9d1b8, #fdd5c6);
+            background: linear-gradient(135deg, #fbdaa8, #fbdaa8);
             min-height: 100vh;
             display: flex;
             justify-content: center;
@@ -29,7 +29,7 @@ body {
             padding: 20px;
             width: 200px;
             min-width: 200px;
-            border: 3px solid #ffac71;
+            border: 0px solid #ffac71;
             backdrop-filter: blur(10px);
             height: fit-content;
             position: sticky;
@@ -49,7 +49,7 @@ body {
             background: rgba(255, 235, 204, 0.8);
             padding: 15px;
             border-radius: 10px;
-            border: 2px solid rgba(210, 105, 30, 0.3);
+            border: 0px solid rgba(210, 105, 30, 0.3);
         }
 
         .dice-number {
@@ -59,7 +59,7 @@ body {
             color: #ff4500;
             margin-bottom: 10px;
             background: #fff5e6;
-            border: 2px solid #d2691e;
+            border: 0px solid #d2691e;
             border-radius: 8px;
             padding: 5px;
         }
@@ -98,7 +98,7 @@ body {
             padding: 30px;
             max-width: 800px;
             width: 100%;
-            border: 3px solid #d2691e;
+            border: 0px solid #d2691e;
             flex-shrink: 0;
         }
 
@@ -140,7 +140,7 @@ body {
             position: absolute;
             width: 8px;
             height: 8px;
-            z-index: 5;
+            z-index: 6;
         }
 
         .grid-point::before {
@@ -401,8 +401,8 @@ body {
         .bush-line {
             position: absolute;
             background: none;
-            border: 2px dotted #228b22;
-            z-index: 6;
+            border: 2px dotted #ffeedd;
+            z-index: 5;
         }
 
         .bush-line::before {
@@ -470,7 +470,7 @@ body {
             cursor: pointer;
             transition: all 0.3s;
             box-shadow: 0 4px 8px rgba(0,0,0,0.2);
-            border: 2px solid #d2691e;
+            border: 0px solid #d2691e;
             margin: 10px;
             display: inline-block;
         }

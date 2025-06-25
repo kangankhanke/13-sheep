@@ -1048,58 +1048,57 @@ function getDirectionFromGridPoint(gridPoint, fence, fenceRow, fenceCol) {
 
 // Updated function to check for forbidden cross patterns
 function wouldCreateForbiddenCrossPattern(newFences, existingFences) {
-    // Count directions for existing fences (from the same shape)
-    const existingHorizontalCount = existingFences.filter(f => f.direction === 'horizontal').length;
-    const existingVerticalCount = existingFences.filter(f => f.direction === 'vertical').length;
+    // Count horizontal and vertical fences from each array
+    const newHorizontal = newFences.filter(f => f.direction === 'horizontal').length;
+    const newVertical = newFences.filter(f => f.direction === 'vertical').length;
+    const existingHorizontal = existingFences.filter(f => f.direction === 'horizontal').length;
+    const existingVertical = existingFences.filter(f => f.direction === 'vertical').length;
     
-    // Count directions for new fences (from the same shape)
-    const newHorizontalCount = newFences.filter(f => f.direction === 'horizontal').length;
-    const newVerticalCount = newFences.filter(f => f.direction === 'vertical').length;
+    // Check for forbidden patterns:
     
-    // Forbidden pattern 1: Existing shape has left AND right fences (2 vertical lines)
-    // and new shape has top AND/OR bottom fences (horizontal lines)
-    if (existingVerticalCount >= 2 && newHorizontalCount >= 1) {
-        // Check if existing shape actually has both left and right at this grid point
-        const hasLeft = existingFences.some(f => f.position === 'left');
-        const hasRight = existingFences.some(f => f.position === 'right');
-        
-        if (hasLeft && hasRight) {
-            return true;
-        }
+    // // 1. Two or more horizontal fences at the same grid point
+    // if (newHorizontal > 0 && existingHorizontal > 0) {
+    //     return true; // Forbidden: two horizontal connections at same point
+    // }
+    
+    // // 2. Two or more vertical fences at the same grid point
+    // if (newVertical > 0 && existingVertical > 0) {
+    //     return true; // Forbidden: two vertical connections at same point
+    // }
+    
+    // 3. Special case for roll 2, 3, 4: 
+    // Check if this grid point is a connector of parallel fences
+    const isNewConnector = isParallelConnector(newFences);
+    const isExistingConnector = isParallelConnector(existingFences);
+    
+    // If both are parallel connectors, don't allow them to coincide
+    if (isNewConnector && isExistingConnector) {
+        return true;
     }
     
-    // Forbidden pattern 2: Existing shape has top AND bottom fences (2 horizontal lines)
-    // and new shape has left AND/OR right fences (vertical lines)
-    if (existingHorizontalCount >= 2 && newVerticalCount >= 1) {
-        // Check if existing shape actually has both top and bottom at this grid point
-        const hasTop = existingFences.some(f => f.position === 'top');
-        const hasBottom = existingFences.some(f => f.position === 'bottom');
-        
-        if (hasTop && hasBottom) {
-            return true;
-        }
+    // Otherwise the pattern is allowed
+    return false;
+}
+
+// Helper function to detect if fences represent a parallel connector
+function isParallelConnector(fences) {
+    // For roll 2: we have exactly 2 fences of the same direction
+    if (fences.length === 2) {
+        const directions = fences.map(f => f.direction);
+        // If both have the same direction, it's a parallel connector
+        return directions[0] === directions[1];
     }
     
-    // Forbidden pattern 3: New shape has left AND right fences (2 vertical lines)
-    // and existing shape has top AND/OR bottom fences (horizontal lines)
-    if (newVerticalCount >= 2 && existingHorizontalCount >= 1) {
-        // Check if new shape actually has both left and right at this grid point
-        const newHasLeft = newFences.some(f => f.position === 'left');
-        const newHasRight = newFences.some(f => f.position === 'right');
+    // For roll 3 & 4: detect if two parallel fences are connected by a perpendicular one
+    // These are L shapes and inverted L shapes with junction points
+    if (fences.length === 3) {
+        const horizontalCount = fences.filter(f => f.direction === 'horizontal').length;
+        const verticalCount = fences.filter(f => f.direction === 'vertical').length;
         
-        if (newHasLeft && newHasRight) {
-            return true;
-        }
-    }
-    
-    // Forbidden pattern 4: New shape has top AND bottom fences (2 horizontal lines)
-    // and existing shape has left AND/OR right fences (vertical lines)
-    if (newHorizontalCount >= 2 && existingVerticalCount >= 1) {
-        // Check if new shape actually has both top and bottom at this grid point
-        const newHasTop = newFences.some(f => f.position === 'top');
-        const newHasBottom = newFences.some(f => f.position === 'bottom');
-        
-        if (newHasTop && newHasBottom) {
+        // If we have 2 of one direction and 1 of the other, check positions
+        if ((horizontalCount === 2 && verticalCount === 1) || 
+            (horizontalCount === 1 && verticalCount === 2)) {
+            // This is likely a connector in an L shape
             return true;
         }
     }
@@ -1134,41 +1133,29 @@ function createReferenceShapes() {
         1: [
             // U-shape orientations
             [{type: 'horizontal', row: 0, col: 0, position: 'top'}, {type: 'horizontal', row: 0, col: 0, position: 'bottom'}, {type: 'vertical', row: 0, col: 0, position: 'right'}], // Top, Bottom, Right
-            [{type: 'vertical', row: 0, col: 0, position: 'left'}, {type: 'vertical', row: 0, col: 0, position: 'right'}, {type: 'horizontal', row: 0, col: 0, position: 'bottom'}], // Left, Right, Bottom
-            [{type: 'horizontal', row: 0, col: 0, position: 'top'}, {type: 'horizontal', row: 0, col: 0, position: 'bottom'}, {type: 'vertical', row: 0, col: 0, position: 'left'}], // Top, Bottom, Left
-            [{type: 'horizontal', row: 0, col: 0, position: 'top'}, {type: 'vertical', row: 0, col: 0, position: 'left'}, {type: 'vertical', row: 0, col: 0, position: 'right'}]  // Top, Left, Right
+            
         ],
         2: [
             // Long line orientations
             [{type: 'horizontal', row: 0, col: 0, position: 'top'}, {type: 'horizontal', row: 0, col: 1, position: 'top'}], // Horizontal line across two cells top
-            [{type: 'vertical', row: 0, col: 0, position: 'right'}, {type: 'vertical', row: -1, col: 0, position: 'right'}], // Vertical line across two cells right
-            [{type: 'vertical', row: 0, col: 0, position: 'left'}, {type: 'vertical', row: -1, col: 0, position: 'left'}], // Vertical line across two cells left
-            [{type: 'horizontal', row: 0, col: 0, position: 'bottom'}, {type: 'horizontal', row: 0, col: 1, position: 'bottom'}] // Horizontal line across two cells bottom
+            
         ],
         3: [
             // L-shape orientations
             [{type: 'horizontal', row: 0, col: 0, position: 'bottom'}, {type: 'vertical', row: 0, col: 0, position: 'left'}, {type: 'vertical', row: -1, col: 0, position: 'left'}], // Bottom, Left, Left-above
-            [{type: 'vertical', row: 0, col: 0, position: 'left'}, {type: 'horizontal', row: 0, col: 0, position: 'top'}, {type: 'horizontal', row: 0, col: 1, position: 'top'}], // Left, Top, Top-right
-            [{type: 'horizontal', row: 0, col: 0, position: 'top'}, {type: 'vertical', row: 0, col: 0, position: 'right'}, {type: 'vertical', row: 1, col: 0, position: 'right'}], // Top, Right, Right-below
-            [{type: 'horizontal', row: 0, col: 0, position: 'bottom'}, {type: 'vertical', row: 0, col: 0, position: 'right'}, {type: 'horizontal', row: 0, col: -1, position: 'bottom'}] // Bottom, Right, Bottom-left
-        ],
+            ],
         4: [
             // Inverted L-shape orientations
             [{type: 'horizontal', row: 0, col: 0, position: 'bottom'}, {type: 'vertical', row: 0, col: 0, position: 'right'}, {type: 'vertical', row: -1, col: 0, position: 'right'}], // Bottom, Right, Right-above
-            [{type: 'vertical', row: 0, col: 0, position: 'left'}, {type: 'horizontal', row: 0, col: 0, position: 'bottom'}, {type: 'horizontal', row: 0, col: 1, position: 'bottom'}], // Left, Bottom, Bottom-right
-            [{type: 'horizontal', row: 0, col: 0, position: 'top'}, {type: 'vertical', row: 0, col: 0, position: 'left'}, {type: 'vertical', row: 1, col: 0, position: 'left'}], // Top, Left, Left-below
-            [{type: 'horizontal', row: 0, col: 0, position: 'top'}, {type: 'vertical', row: 0, col: 0, position: 'right'}, {type: 'horizontal', row: 0, col: -1, position: 'top'}] // Top, Right, Top-left
-        ],
+             ],
         5: [
             // Roll 5 - Two orientations
             [{type: 'vertical', row: 0, col: 0, position: 'left'}, {type: 'horizontal', row: 0, col: 0, position: 'bottom'}, {type: 'vertical', row: 1, col: 0, position: 'right'}], // Left, Bottom, Right-below
-            [{type: 'horizontal', row: 0, col: 0, position: 'bottom'}, {type: 'vertical', row: 0, col: 0, position: 'right'}, {type: 'horizontal', row: 0, col: 1, position: 'top'}] // Bottom, Right, Top-right
-        ],
+             ],
         6: [
             // Roll 6 - Two orientations
             [{type: 'vertical', row: 0, col: 0, position: 'right'}, {type: 'horizontal', row: 0, col: 0, position: 'bottom'}, {type: 'vertical', row: 1, col: 0, position: 'left'}], // Right, Bottom, Left-below
-            [{type: 'horizontal', row: 0, col: 0, position: 'top'}, {type: 'vertical', row: 0, col: 0, position: 'right'}, {type: 'horizontal', row: 0, col: 1, position: 'bottom'}] // Top, Right, Bottom-right
-        ]
+             ]
     };
 
     // Helper function to calculate fence position and size for reference display
@@ -1355,8 +1342,8 @@ function downloadPrintableBoard() {
     });
     
     // Draw bushes on the edges between cells (black dotted lines)
-    ctx.strokeStyle = 'black';
-    ctx.lineWidth = 3;
+    ctx.strokeStyle = 'white';
+    ctx.lineWidth = 0;
     ctx.setLineDash([8, 4]); // Dotted line pattern
     
     // Parse bush positions from DOM
@@ -1393,7 +1380,7 @@ function downloadPrintableBoard() {
             ctx.setLineDash([]); // Reset to solid line for text
             ctx.fillStyle = 'black';
             ctx.font = '20px Arial'; // Slightly smaller font for better fit
-            //ctx.fillText('🌳', startX + cellSize/2, y);
+            ctx.fillText('🌳', startX + cellSize/2, y);
             ctx.setLineDash([8, 4]); // Back to dotted
             
         } else if (bush.classList.contains('bush-vertical')) {
@@ -1411,12 +1398,12 @@ function downloadPrintableBoard() {
             ctx.lineTo(x, endY);
             ctx.stroke();
             
-            // // Draw tree emoji centered on the line
-            // ctx.setLineDash([]); // Reset to solid line for text
-            // ctx.fillStyle = 'black';
-            // ctx.font = '20px Arial'; // Slightly smaller font for better fit
-            // ctx.fillText('🌳', x, startY + cellSize/2);
-            // ctx.setLineDash([8, 4]); // Back to dotted
+            // Draw tree emoji centered on the line
+            ctx.setLineDash([]); // Reset to solid line for text
+            ctx.fillStyle = 'black';
+            ctx.font = '20px Arial'; // Slightly smaller font for better fit
+            ctx.fillText('🌳', x, startY + cellSize/2);
+            ctx.setLineDash([8, 4]); // Back to dotted
         }
     });
     
