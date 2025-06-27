@@ -580,16 +580,22 @@ body {
         }
 
         /* Responsive design */
-        @media (max-width: 1400px) {
+        @media (max-width: 1200px) {
             .main-layout {
                 flex-direction: column;
                 align-items: center;
+                gap: 10px;
             }
             
             .shape-reference {
                 width: 100%;
                 max-width: 800px;
                 position: static;
+                order: 2;
+            }
+            
+            .game-container {
+                order: 1;
             }
             
             .dice-shape-group {
@@ -598,6 +604,13 @@ body {
                 align-items: center;
                 flex-wrap: wrap;
                 justify-content: center;
+                margin-bottom: 15px;
+            }
+            
+            .dice-number {
+                min-width: 50px;
+                margin-bottom: 0;
+                margin-right: 10px;
             }
             
             .reference-shapes {
@@ -609,6 +622,11 @@ body {
         @media (max-width: 768px) {
             body {
                 padding: 10px;
+                gap: 10px;
+            }
+            
+            .main-layout {
+                gap: 10px;
             }
             
             .shape-reference {
@@ -616,15 +634,148 @@ body {
             }
             
             .game-container {
-                padding: 20px;
+                padding: 15px;
+                max-width: 100%;
+            }
+            
+            h1 {
+                font-size: 2em;
+                margin-bottom: 20px;
+            }
+            
+            .game-board {
+                width: 100%;
+                max-width: 400px;
+                height: auto;
+                aspect-ratio: 1;
+                padding: 5px;
             }
             
             .dice-shape-group {
-                flex-wrap: wrap;
-                justify-content: center;
+                padding: 10px;
+                margin-bottom: 10px;
+            }
+            
+            .reference-shape {
+                width: 50px;
+                height: 50px;
             }
             
             .button-container {
                 flex-wrap: wrap;
+                gap: 8px;
+            }
+            
+            .how-to-play-btn, .new-game-btn, .replay-game-btn, .print-board-btn {
+                padding: 10px 16px;
+                font-size: 14px;
+                margin: 5px;
+            }
+            
+            .status {
+                font-size: 16px;
+            }
+            
+            .protected-count, .rolls-remaining {
+                font-size: 16px;
+                padding: 8px 16px;
+                margin: 5px;
+            }
+            
+            .controls {
+                gap: 15px;
+            }
+            
+            .fence-shapes {
+                gap: 10px;
+            }
+            
+            .shape-option {
+                width: 70px;
+                height: 70px;
+            }
+            
+            .dice {
+                width: 70px;
+                height: 70px;
+                font-size: 32px;
+            }
+        }
+
+        @media (max-width: 480px) {
+            body {
+                padding: 5px;
+            }
+            
+            .game-container {
+                padding: 10px;
+            }
+            
+            h1 {
+                font-size: 1.8em;
+            }
+            
+            .game-board {
+                max-width: 350px;
+            }
+            
+            .shape-reference {
+                padding: 10px;
+            }
+            
+            .dice-shape-group {
+                padding: 8px;
+                flex-direction: column;
+                text-align: center;
+            }
+            
+            .dice-number {
+                margin-bottom: 8px;
+                margin-right: 0;
+            }
+            
+            .reference-shapes {
+                justify-content: center;
+            }
+            
+            .reference-shape {
+                width: 45px;
+                height: 45px;
+            }
+            
+            .how-to-play-btn, .new-game-btn, .replay-game-btn, .print-board-btn {
+                padding: 8px 12px;
+                font-size: 13px;
+                margin: 3px;
+            }
+            
+            .shape-option {
+                width: 60px;
+                height: 60px;
+            }
+            
+            .dice {
+                width: 60px;
+                height: 60px;
+                font-size: 28px;
+            }
+            
+            .btn {
+                padding: 10px 18px;
+                font-size: 14px;
+            }
+            
+            .modal-content {
+                padding: 20px;
+                margin: 10% auto;
+                width: 95%;
+            }
+            
+            .modal h2 {
+                font-size: 1.5em;
+            }
+            
+            .instructions-content {
+                font-size: 14px;
             }
         }
