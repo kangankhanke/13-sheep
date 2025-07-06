@@ -12,37 +12,10 @@
 </head>
 <body>
      <div class="main-layout">
-        <!-- Left side shape reference (dice 1, 3, 5) -->
-        <div class="shape-reference">
-            <h3> Dice Shapes</h3>
-            
-            <div class="dice-shape-group">
-                <div class="dice-number">1</div>
-                <div class="reference-shapes" id="shapes-1">
-                    <!-- Shapes for dice 1 will be populated here -->
-                </div>
-            </div>
-            
-            <div class="dice-shape-group">
-                <div class="dice-number">3</div>
-                <div class="reference-shapes" id="shapes-3">
-                    <!-- Shapes for dice 3 will be populated here -->
-                </div>
-            </div>
-            
-            <div class="dice-shape-group">
-                <div class="dice-number">5</div>
-                <div class="reference-shapes" id="shapes-5">
-                    <!-- Shapes for dice 5 will be populated here -->
-                </div>
-            </div>
-        </div>
-
         <!-- Main game container -->
         <div class="game-container">
             <h1> 13 Sheep </h1>
-            
-            
+
             <div class="rolls-container">
                 
             </div>
@@ -54,47 +27,50 @@
                     <button class="btn" onclick="rollDice()">Roll Dice</button>
                     <div class="dice" id="dice" onclick="rollDice()">?</div>
                 </div>
-                
                 <div class="fence-shapes" id="fenceShapes">
                     <!-- Fence shape options will be populated here -->
                 </div>
             </div>
-            <div class="status">
+            <button class="btn undo-fence-btn" id="undoFenceBtn" onclick="undoLastFencePlacement()">Undo Last Fence</button>
+            <div class="dice-shapes-row">
+                <div class="reference-shapes" id="shapes-1">
+                    <div class="dice-number">1</div>
+                    <!-- Shapes for dice 1 will be populated here -->
+                </div>
+                <div class="reference-shapes" id="shapes-2">
+                    <div class="dice-number">2</div>
+                    <!-- Shapes for dice 2 will be populated here -->
+                </div>
+                <div class="reference-shapes" id="shapes-3">
+                    <div class="dice-number">3</div>
+                    <!-- Shapes for dice 3 will be populated here -->
+                </div>
+                <div class="reference-shapes" id="shapes-4">
+                    <div class="dice-number">4</div>
+                    <!-- Shapes for dice 4 will be populated here -->
+                </div>
+                <div class="reference-shapes" id="shapes-5">
+                    <div class="dice-number">5</div>
+                    <!-- Shapes for dice 5 will be populated here -->
+                </div>
+                <div class="reference-shapes" id="shapes-6">
+                    <div class="dice-number">6</div>
+                    <!-- Shapes for dice 6 will be populated here -->
+                </div>
+            </div>
+            <div class="status protected-rolls-row">
                 <div class="protected-count">Protected Sheep: <span id="protectedCount">0</span> / 13</div>
                 <div class="rolls-remaining"> Rolls Remaining: <span id="rollsRemaining">10</span></div>
             </div>
-            
-            
+            <!-- Dice shape references (side by side, below the board) -->
             <div class="button-container">
-                <button class="replay-game-btn" onclick="replayGame()">Replay Same Board</button>
-                <button class="new-game-btn" onclick="newGame()">New Random Board</button>
-                <button class="how-to-play-btn" onclick="openInstructions()">How to Play</button>
-                <button class="print-board-btn" onclick="downloadPrintableBoard()">Download Printable Board</button>
-            </div>
-        </div>
-
-        <!-- Right side shape reference (dice 2, 4, 6) -->
-        <div class="shape-reference">
-            <h3> Dice Shapes</h3>
-            
-            <div class="dice-shape-group">
-                <div class="dice-number">2</div>
-                <div class="reference-shapes" id="shapes-2">
-                    <!-- Shapes for dice 2 will be populated here -->
+                <div class="replay-new-row">
+                    <button class="replay-game-btn" onclick="replayGame()">Replay Same Board</button>
+                    <button class="new-game-btn" onclick="newGame()">New Random Board</button>
                 </div>
-            </div>
-            
-            <div class="dice-shape-group">
-                <div class="dice-number">4</div>
-                <div class="reference-shapes" id="shapes-4">
-                    <!-- Shapes for dice 4 will be populated here -->
-                </div>
-            </div>
-            
-            <div class="dice-shape-group">
-                <div class="dice-number">6</div>
-                <div class="reference-shapes" id="shapes-6">
-                    <!-- Shapes for dice 6 will be populated here -->
+                <div class="howto-download-row">
+                    <button class="how-to-play-btn" onclick="openInstructions()">How to Play</button>
+                    <button class="print-board-btn" onclick="downloadPrintableBoard()">Download Printable Board</button>
                 </div>
             </div>
         </div>

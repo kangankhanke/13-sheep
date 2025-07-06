@@ -45,11 +45,10 @@ body {
         }
 
         .dice-shape-group {
-            margin-bottom: 25px;
-            background: rgba(255, 235, 204, 0.8);
-            padding: 15px;
-            border-radius: 10px;
-            border: 0px solid rgba(210, 105, 30, 0.3);
+            margin-bottom: 0;
+            background: none;
+            padding: 0;
+            border: none;
         }
 
         .dice-number {
@@ -59,7 +58,6 @@ body {
             color: #ff4500;
             margin-bottom: 10px;
             background: #fff5e6;
-            border: 0px solid #d2691e;
             border-radius: 8px;
             padding: 5px;
         }
@@ -579,6 +577,59 @@ body {
             border-left: 4px solid #ff8c42;
         }
 
+        .all-dice-shapes-reference {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 20px;
+            justify-content: center;
+            align-items: flex-start;
+            background: rgba(255, 235, 204, 0.8);
+            padding: 20px;
+            border-radius: 15px;
+            margin-bottom: 25px;
+            width: 100%;
+        }
+
+        .all-dice-shapes-reference h3 {
+            width: 100%;
+            text-align: center;
+            color: #8b4513;
+            margin-bottom: 20px;
+            font-size: 1.2em;
+            text-shadow: 1px 1px 2px rgba(0,0,0,0.1);
+        }
+
+        .all-dice-shapes-reference .reference-shapes {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 8px;
+            min-width: 90px;
+        }
+
+        @media (max-width: 1400px) {
+            .all-dice-shapes-reference {
+                flex-direction: row;
+                flex-wrap: wrap;
+                justify-content: center;
+                align-items: flex-start;
+                width: 100%;
+            }
+        }
+
+        @media (max-width: 768px) {
+            .all-dice-shapes-reference {
+                flex-direction: column;
+                align-items: center;
+                padding: 10px;
+            }
+            .all-dice-shapes-reference .reference-shapes {
+                flex-direction: row;
+                gap: 10px;
+                min-width: unset;
+            }
+        }
+
         /* Responsive design */
         @media (max-width: 1400px) {
             .main-layout {
@@ -628,4 +679,162 @@ body {
                 flex-wrap: wrap;
             }
         }
+
+        .dice-shapes-row {
+            display: flex;
+            flex-direction: row;
+            gap: 24px;
+            justify-content: center;
+            align-items: flex-start;
+            margin: 30px 0 10px 0;
+            flex-wrap: wrap;
+        }
+
+        .dice-shapes-row .reference-shapes {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 8px;
+            min-width: 90px;
+        }
+
+        .dice-shapes-row .dice-number {
+            text-align: center;
+            font-size: 24px;
+            font-weight: bold;
+            color: #ff4500;
+            margin-bottom: 10px;
+            background: #fff5e6;
+            border-radius: 8px;
+            padding: 5px;
+        }
+
+        @media (max-width: 900px) {
+            .dice-shapes-row {
+                flex-wrap: wrap;
+                gap: 12px;
+            }
+            .dice-shapes-row .reference-shapes {
+                min-width: 70px;
+            }
+        }
+
+        @media (max-width: 600px) {
+            .dice-shapes-row {
+                flex-direction: row !important;
+                align-items: flex-start;
+                gap: 6px;
+                flex-wrap: wrap;
+            }
+            .dice-shapes-row .reference-shapes {
+                flex-direction: column !important;
+                min-width: 60px;
+                gap: 4px;
+            }
+        }
+
+        @media (max-width: 600px) {
+            body {
+                background: #fff5e6 !important;
+            }
+            .game-container {
+                background: #fff5e6 !important;
+                border: none;
+                box-shadow: none;
+                padding: 10px;
+            }
+        }
+
+        @media (max-width: 600px) {
+            .game-container > *:not(.game-board) {
+                margin-left: 20vw;
+            }
+        }
+
+        @media (max-width: 600px) {
+    /* Protected sheep and rolls remaining side by side */
+    .rolls-container, .protected-count {
+        display: inline-block;
+        vertical-align: middle;
+        margin: 0 4px 10px 0;
+    }
+    .rolls-container {
+        margin-bottom: 0;
+    }
+    .protected-rolls-row {
+        display: flex;
+        flex-direction: row;
+        justify-content: center;
+        align-items: center;
+        gap: 8px;
+        margin-bottom: 10px;
+    }
+    /* Replay and new random board side by side */
+    .replay-new-row {
+        display: flex;
+        flex-direction: row;
+        justify-content: center;
+        align-items: center;
+        gap: 8px;
+        margin-bottom: 10px;
+    }
+    /* How to play and download printable board side by side */
+    .howto-download-row {
+        display: flex;
+        flex-direction: row;
+        justify-content: center;
+        align-items: center;
+        gap: 8px;
+        margin-bottom: 10px;
+    }
+    /* Remove extra vertical spacing for these button rows */
+    .button-container {
+        flex-direction: column;
+        gap: 0;
+    }
+    .replay-new-row button,
+    .howto-download-row button {
+        min-width: 36vw;
+        font-size: 0.95em;
+        padding: 8px 0;
+    }
+    .protected-rolls-row > * {
+        min-width: 32vw;
+        font-size: 0.95em;
+        padding: 8px 0;
+    }
+}
+
+.undo-fence-btn {
+    background: linear-gradient(135deg, #ffb347, #ff7f50);
+    color: #fff;
+    border: none;
+    padding: 12px 24px;
+    border-radius: 20px;
+    font-family: "Didact Gothic", sans-serif;
+    font-weight: bold;
+    font-size: 16px;
+    cursor: pointer;
+    transition: all 0.3s;
+    box-shadow: 0 4px 8px rgba(0,0,0,0.15);
+    margin: 10px 0 0 0;
+    display: block;
+    width: 100%;
+    max-width: 220px;
+    margin-left: auto;
+    margin-right: auto;
+}
+.undo-fence-btn:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+}
+@media (max-width: 600px) {
+    .undo-fence-btn {
+        min-width: 36vw;
+        font-size: 1em;
+        padding: 10px 0;
+        margin: 8px auto 0 auto;
+        max-width: 90vw;
+    }
+}
 
