@@ -488,6 +488,51 @@ function selectShape(roll, shapeIndex) {
 // Store placed shapes instead of just fence keys
 const placedShapes = []; // Array to store {startRow, startCol, shape, roll, shapeIndex}
 
+// Add undo stack for placed shapes
+const undoStack = [];
+
+function undoLastFencePlacement() {
+    if (placedShapes.length === 0) return;
+    // Only allow undo if mustRollDice is true (i.e. after a placement, before next roll)
+    if (mustRollDice) {
+        // Remove last placed shape
+        const last = placedShapes.pop();
+        // Remove all fences for this shape
+        last.shape.forEach(fence => {
+            const row = last.startRow + fence.row;
+            const col = last.startCol + fence.col;
+            const fenceKey1 = `${row}-${col}-${fence.position}`;
+            fences.delete(fenceKey1);
+            // Remove adjacent/opposite fence
+            let adjacentRow = row, adjacentCol = col, oppositePosition = '';
+            if (fence.position === 'top') {
+                adjacentRow = row - 1;
+                oppositePosition = 'bottom';
+            } else if (fence.position === 'bottom') {
+                adjacentRow = row + 1;
+                oppositePosition = 'top';
+            } else if (fence.position === 'left') {
+                adjacentCol = col - 1;
+                oppositePosition = 'right';
+            } else if (fence.position === 'right') {
+                adjacentCol = col + 1;
+                oppositePosition = 'left';
+            }
+            const fenceKey2 = `${adjacentRow}-${adjacentCol}-${oppositePosition}`;
+            fences.delete(fenceKey2);
+        });
+        // Restore mustRollDice = false so player can select a different shape
+        mustRollDice = false;
+        selectedShape = { roll: last.roll, shapeIndex: null };
+        updateFenceDisplay();
+        updateProtectedCount();
+        hideFencePreview();
+        hideErrorMessage();
+        // Optionally, show fence options for the same roll again
+        showFenceOptions(last.roll);
+    }
+}
+
 // Helper function to determine the direction of a fence from a specific grid point
 function getDirectionFromGridPoint(gridPoint, fence, fenceRow, fenceCol) {
     if (fence.type === 'horizontal') {
