@@ -948,6 +948,9 @@ function newGame() {
     document.getElementById('dice').textContent = '?';
     document.getElementById('fenceShapes').innerHTML = '';
     hideFencePreview();
+    
+    // Add this line to check for unfencable sheep after generating new board
+    alertIfUnfencableSheep();
 }
 
 // Enhanced intersection detection function
