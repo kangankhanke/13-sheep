@@ -241,7 +241,7 @@ function isProtected(row, col) {
         // Check all four directions
         const directions = [
             {dir: 'top', newRow: currentRow - 1, newCol: currentCol, fenceKey: `${currentRow}-${currentCol}-top`},
-            {dir: 'bottom', newRow: currentRow + 1, newCol: currentCol, fenceKey: `${currentRow}-${currentRow}-bottom`},
+            {dir: 'bottom', newRow: currentRow + 1, newCol: currentCol, fenceKey: `${currentRow}-${currentCol}-bottom`},
             {dir: 'left', newRow: currentRow, newCol: currentCol - 1, fenceKey: `${currentRow}-${currentCol}-left`},
             {dir: 'right', newRow: currentRow, newCol: currentCol + 1, fenceKey: `${currentRow}-${currentCol}-right`}
         ];
@@ -487,6 +487,51 @@ function selectShape(roll, shapeIndex) {
 
 // Store placed shapes instead of just fence keys
 const placedShapes = []; // Array to store {startRow, startCol, shape, roll, shapeIndex}
+
+// Add undo stack for placed shapes
+const undoStack = [];
+
+function undoLastFencePlacement() {
+    if (placedShapes.length === 0) return;
+    // Only allow undo if mustRollDice is true (i.e. after a placement, before next roll)
+    if (mustRollDice) {
+        // Remove last placed shape
+        const last = placedShapes.pop();
+        // Remove all fences for this shape
+        last.shape.forEach(fence => {
+            const row = last.startRow + fence.row;
+            const col = last.startCol + fence.col;
+            const fenceKey1 = `${row}-${col}-${fence.position}`;
+            fences.delete(fenceKey1);
+            // Remove adjacent/opposite fence
+            let adjacentRow = row, adjacentCol = col, oppositePosition = '';
+            if (fence.position === 'top') {
+                adjacentRow = row - 1;
+                oppositePosition = 'bottom';
+            } else if (fence.position === 'bottom') {
+                adjacentRow = row + 1;
+                oppositePosition = 'top';
+            } else if (fence.position === 'left') {
+                adjacentCol = col - 1;
+                oppositePosition = 'right';
+            } else if (fence.position === 'right') {
+                adjacentCol = col + 1;
+                oppositePosition = 'left';
+            }
+            const fenceKey2 = `${adjacentRow}-${adjacentCol}-${oppositePosition}`;
+            fences.delete(fenceKey2);
+        });
+        // Restore mustRollDice = false so player can select a different shape
+        mustRollDice = false;
+        selectedShape = { roll: last.roll, shapeIndex: null };
+        updateFenceDisplay();
+        updateProtectedCount();
+        hideFencePreview();
+        hideErrorMessage();
+        // Optionally, show fence options for the same roll again
+        showFenceOptions(last.roll);
+    }
+}
 
 // Helper function to determine the direction of a fence from a specific grid point
 function getDirectionFromGridPoint(gridPoint, fence, fenceRow, fenceCol) {
@@ -1449,174 +1494,4 @@ function downloadPrintableBoard() {
         errorDiv.style.borderLeft = '3px solid #ff4500';
     }, 3000);
 }
-
-// Returns true if the sheep at (row, col) is fencable (can be surrounded by a closed outline not crossing any bush lines)
-// Progressive search: First try 5x5, then expand to 7x7 if needed
-    // This optimizes performance by checking smaller areas first
-function isSheepFencable(row, col) {
-    console.log(`Checking if sheep at (${row}, ${col}) is fencable...`);
-    // The sheep is in cell (row, col) on a 7x7 board.
-    // The 4 grid points around the cell:
-    // (col, row), (col+1, row), (col, row+1), (col+1, row+1)
-    // We want to check if there is a cycle of grid points enclosing this cell, using only edges that are not blocked by bushes.
-
-    // Helper: returns true if the edge between (gx1, gy1) and (gx2, gy2) is not blocked by a bush
-    function isEdgeFree(gx1, gy1, gx2, gy2) {
-        if (gx1 === gx2) {
-            // vertical edge
-            const minY = Math.min(gy1, gy2);
-            const col = gx1;
-            const row = minY;
-            // Bush key for vertical: `${row}-${col}-vertical`
-            return !bushes.has(`${row}-${col}-vertical`);
-        } else if (gy1 === gy2) {
-            // horizontal edge
-            const minX = Math.min(gx1, gx2);
-            const row = gy1;
-            const col = minX;
-            // Bush key for horizontal: `${row}-${col}-horizontal`
-            return !bushes.has(`${row}-${col}-horizontal`);
-        }
-        return false; // not adjacent
-    }
-
-    // Point-in-polygon helper function
-    function pointInPolygon(px, py, polygon) {
-        // Ray-casting algorithm
-        let inside = false;
-        for (let i = 0, j = polygon.length - 1; i < polygon.length; j = i++) {
-            const [xi, yi] = polygon[i];
-            const [xj, yj] = polygon[j];
-            if (
-                ((yi > py) !== (yj > py)) &&
-                (px < (xj - xi) * (py - yi) / (yj - yi + 0.00001) + xi)
-            ) {
-                inside = !inside;
-            }
-        }
-        return inside;
-    }
-
-    // The 4 grid points around the cell
-    const corners = [
-        [col, row],
-        [col + 1, row],
-        [col + 1, row + 1],
-        [col, row + 1]
-    ];
-
-    // For a 1x1 cell, the minimal enclosing cycle is the 4 corners in order.
-    // Check if all 4 edges are free of bushes
-    let allFree = true;
-    for (let i = 0; i < 4; ++i) {
-        const [gx1, gy1] = corners[i];
-        const [gx2, gy2] = corners[(i + 1) % 4];
-        if (!isEdgeFree(gx1, gy1, gx2, gy2)) {
-            allFree = false;
-            break;
-        }
-    }
-    if (allFree) return true;
-
-    // Progressive search: First try 4x4, then expand to 5x5 if needed
-    function tryFindCycle(searchRadius) {
-        const gridPointSet = new Set();
-        for (let gy = Math.max(0, row - searchRadius); gy <= Math.min(7, row + searchRadius + 1); ++gy) {
-            for (let gx = Math.max(0, col - searchRadius); gx <= Math.min(7, col + searchRadius + 1); ++gx) {
-                gridPointSet.add(`${gx},${gy}`);
-            }
-        }
-        // Ensure all four corners are included
-        for (const [gx, gy] of corners) {
-            gridPointSet.add(`${gx},${gy}`);
-        }
-        // Convert set to array of [gx, gy]
-        const gridPoints = Array.from(gridPointSet).map(s => s.split(',').map(Number));
-
-        // Build adjacency list of bush-free edges between grid points in this area
-        const adj = {};
-        for (const [gx, gy] of gridPoints) {
-            const key = `${gx},${gy}`;
-            adj[key] = [];
-            // 4 directions
-            const dirs = [
-                [gx + 1, gy],
-                [gx - 1, gy],
-                [gx, gy + 1],
-                [gx, gy - 1]
-            ];
-            for (const [nx, ny] of dirs) {
-                // Allow board edge points (0..7)
-                if (
-                    nx >= 0 && nx <= 7 && ny >= 0 && ny <= 7 &&
-                    Math.abs(nx - gx) + Math.abs(ny - gy) === 1 &&
-                    isEdgeFree(gx, gy, nx, ny)
-                ) {
-                    adj[key].push(`${nx},${ny}`);
-                }
-            }
-        }
-
-        // For each corner, try to find a simple cycle that starts and ends at that corner and encloses the cell
-        for (let startIdx = 0; startIdx < 4; ++startIdx) {
-            const [startX, startY] = corners[startIdx];
-            const startKey = `${startX},${startY}`;
-            // BFS for cycles up to length 100
-            const queue = [[startKey, [startKey]]];
-            while (queue.length > 0) {
-                const [current, path] = queue.shift();
-                if (path.length > 2 && current === startKey) {
-                    // Found a cycle, check if it encloses the cell center
-                    const polygon = path.map(k => k.split(',').map(Number));
-                    if (pointInPolygon(col + 0.5, row + 0.5, polygon)) {
-                        return true;
-                    }
-                    continue;
-                }
-                if (path.length > 100) continue; // Limit cycle length to 100
-                if (!adj[current]) continue; // Fix: skip if current is not in adj
-                for (const neighbor of adj[current]) {
-                    // Don't revisit except for returning to start
-                    if (neighbor === startKey || !path.includes(neighbor)) {
-                        queue.push([neighbor, [...path, neighbor]]);
-                    }
-                }
-            }
-        }
-        return false;
-    }
-
-    // Try 4x4 first, then 5x5 if no cycle found
-    if (tryFindCycle(1)) return true;  // 4x4 area (radius 1)
-    if (tryFindCycle(2)) return true;  // 5x5 area (radius 2)
-    return false;
-}
-
-// Check fencability for all sheep on the board and log the result
-function checkAllSheepFencable() {
-    if (!Array.isArray(sheep)) return;
-    sheep.forEach(([row, col]) => {
-        const result = isSheepFencable(row, col);
-        console.log(`Sheep at (${row}, ${col}) fencable: ${result}`);
-    });
-}
-
-// Check if all sheep are fencable; if not, alert the user
-function alertIfUnfencableSheep() {
-    if (!Array.isArray(sheep)) return;
-    let allFencable = true;
-    sheep.forEach(([row, col]) => {
-        const result = isSheepFencable(row, col);
-        if (!result) {
-            allFencable = false;
-            console.log(`Sheep at (${row}, ${col}) is NOT fencable!`);
-        }
-    });
-    if (!allFencable) {
-        alert('At least one sheep is not fencable on this board. Please regenerate a different board.');
-    }
-}
-
-// Example: run this after board is generated
- checkAllSheepFencable();
- alertIfUnfencableSheep();
+//test
