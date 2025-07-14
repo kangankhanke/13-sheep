@@ -61,6 +61,42 @@ const fenceShapes = {
         [{type: 'horizontal', row: 0, col: 0, position: 'top'}, {type: 'vertical', row: 0, col: 0, position: 'right'}, {type: 'horizontal', row: 0, col: 1, position: 'bottom'}] // Top, Right, Bottom-right
     ]
 };
+function replayGame() {
+    board = Array(7).fill().map(() => Array(7).fill(null));
+    sheep = [];
+    fences = new Set();
+    
+    // Reset game state variables
+    rollsRemaining = 10;
+    mustRollDice = true;
+    selectedShape = null;
+    currentDiceRoll = null;
+    
+    // Clear placed shapes array
+    placedShapes.length = 0;
+    
+    // Update display
+    document.getElementById('rollsRemaining').textContent = rollsRemaining;
+    
+    // Restore the same sheep positions
+    for (let i = 0; i < initialSheepPositions.length; i++) {
+        const [row, col] = initialSheepPositions[i];
+        board[row][col] = 'sheep';
+        sheep.push([row, col]);
+    }
+    
+    // Restore the same bush positions
+    bushes = new Set(initialBushes);
+    
+    createBoard();
+    updateProtectedCount();
+    hideErrorMessage();
+    
+    // Reset dice and shapes display
+    document.getElementById('dice').textContent = '?';
+    document.getElementById('fenceShapes').innerHTML = '';
+    hideFencePreview();
+}
 
 function initGame() {
     board = Array(7).fill().map(() => Array(7).fill(null));
@@ -111,42 +147,8 @@ function initGame() {
     updateProtectedCount();
     hideErrorMessage();
 }
-function replayGame() {
-    board = Array(7).fill().map(() => Array(7).fill(null));
-    sheep = [];
-    fences = new Set();
-    
-    // Reset game state variables
-    rollsRemaining = 10;
-    mustRollDice = true;
-    selectedShape = null;
-    currentDiceRoll = null;
-    
-    // Clear placed shapes array
-    placedShapes.length = 0;
-    
-    // Update display
-    document.getElementById('rollsRemaining').textContent = rollsRemaining;
-    
-    // Restore the same sheep positions
-    for (let i = 0; i < initialSheepPositions.length; i++) {
-        const [row, col] = initialSheepPositions[i];
-        board[row][col] = 'sheep';
-        sheep.push([row, col]);
-    }
-    
-    // Restore the same bush positions
-    bushes = new Set(initialBushes);
-    
-    createBoard();
-    updateProtectedCount();
-    hideErrorMessage();
-    
-    // Reset dice and shapes display
-    document.getElementById('dice').textContent = '?';
-    document.getElementById('fenceShapes').innerHTML = '';
-    hideFencePreview();
-}
+
+
 function createBoard() {
     const gameBoard = document.getElementById('gameBoard');
     gameBoard.innerHTML = '';
@@ -804,21 +806,79 @@ function determineFenceClass(fenceKey) {
 function createRandomBushes() {
     bushes.clear();
     
-    // Generate 8-12 random bush lines
-    const numBushes = Math.floor(Math.random() * 5) + 8;
+    // Create a set of forbidden bush positions based on edge sheep
+    const forbiddenBushes = new Set();
     
-    for (let i = 0; i < numBushes; i++) {
+    sheep.forEach(([row, col]) => {
+        // Sheep on top edge (row 0) - forbid horizontal bush above it
+        if (row === 0) {
+            forbiddenBushes.add(`0-${col}-horizontal`);
+        }
+        
+        // Sheep on bottom edge (row 6) - forbid horizontal bush below it
+        if (row === 6) {
+            forbiddenBushes.add(`7-${col}-horizontal`);
+        }
+        
+        // Sheep on left edge (column 0) - forbid vertical bush to its left
+        if (col === 0) {
+            forbiddenBushes.add(`${row}-0-vertical`);
+        }
+        
+        // Sheep on right edge (column 6) - forbid vertical bush to its right
+        if (col === 6) {
+            forbiddenBushes.add(`${row}-7-vertical`);
+        }
+    });
+    
+    // Generate 8-12 random bush lines, avoiding forbidden positions
+    const numBushes = Math.floor(Math.random() * 5) + 8;
+    let attempts = 0;
+    const maxAttempts = 100; // Prevent infinite loops
+    
+    while (bushes.size < numBushes && attempts < maxAttempts) {
         const isHorizontal = Math.random() < 0.5;
+        let bushKey;
         
         if (isHorizontal) {
             const row = Math.floor(Math.random() * 8); // 0-7 for horizontal lines
             const col = Math.floor(Math.random() * 7); // 0-6 for horizontal lines
-            bushes.add(`${row}-${col}-horizontal`);
+            bushKey = `${row}-${col}-horizontal`;
         } else {
             const row = Math.floor(Math.random() * 7); // 0-6 for vertical lines
             const col = Math.floor(Math.random() * 8); // 0-7 for vertical lines
-            bushes.add(`${row}-${col}-vertical`);
+            bushKey = `${row}-${col}-vertical`;
         }
+        
+        // Only add the bush if it's not forbidden and not already present
+        if (!forbiddenBushes.has(bushKey) && !bushes.has(bushKey)) {
+            bushes.add(bushKey);
+        }
+        
+        attempts++;
+    }
+    
+    // If we couldn't generate enough bushes due to restrictions, 
+    // fill remaining spots with non-forbidden positions
+    while (bushes.size < numBushes && attempts < maxAttempts * 2) {
+        const isHorizontal = Math.random() < 0.5;
+        let bushKey;
+        
+        if (isHorizontal) {
+            const row = Math.floor(Math.random() * 8);
+            const col = Math.floor(Math.random() * 7);
+            bushKey = `${row}-${col}-horizontal`;
+        } else {
+            const row = Math.floor(Math.random() * 7);
+            const col = Math.floor(Math.random() * 8);
+            bushKey = `${row}-${col}-vertical`;
+        }
+        
+        if (!forbiddenBushes.has(bushKey) && !bushes.has(bushKey)) {
+            bushes.add(bushKey);
+        }
+        
+        attempts++;
     }
 }
 
