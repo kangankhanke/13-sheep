@@ -803,6 +803,84 @@ function determineFenceClass(fenceKey) {
     }
 }
 
+// function createRandomBushes() {
+//     bushes.clear();
+    
+//     // Create a set of forbidden bush positions based on edge sheep
+//     const forbiddenBushes = new Set();
+    
+//     sheep.forEach(([row, col]) => {
+//         // Sheep on top edge (row 0) - forbid horizontal bush above it
+//         if (row === 0) {
+//             forbiddenBushes.add(`0-${col}-horizontal`);
+//         }
+        
+//         // Sheep on bottom edge (row 6) - forbid horizontal bush below it
+//         if (row === 6) {
+//             forbiddenBushes.add(`7-${col}-horizontal`);
+//         }
+        
+//         // Sheep on left edge (column 0) - forbid vertical bush to its left
+//         if (col === 0) {
+//             forbiddenBushes.add(`${row}-0-vertical`);
+//         }
+        
+//         // Sheep on right edge (column 6) - forbid vertical bush to its right
+//         if (col === 6) {
+//             forbiddenBushes.add(`${row}-7-vertical`);
+//         }
+//     });
+    
+//     // Generate 8-12 random bush lines, avoiding forbidden positions
+//     const numBushes = Math.floor(Math.random() * 5) + 8;
+//     let attempts = 0;
+//     const maxAttempts = 100; // Prevent infinite loops
+    
+//     while (bushes.size < numBushes && attempts < maxAttempts) {
+//         const isHorizontal = Math.random() < 0.5;
+//         let bushKey;
+        
+//         if (isHorizontal) {
+//             const row = Math.floor(Math.random() * 8); // 0-7 for horizontal lines
+//             const col = Math.floor(Math.random() * 7); // 0-6 for horizontal lines
+//             bushKey = `${row}-${col}-horizontal`;
+//         } else {
+//             const row = Math.floor(Math.random() * 7); // 0-6 for vertical lines
+//             const col = Math.floor(Math.random() * 8); // 0-7 for vertical lines
+//             bushKey = `${row}-${col}-vertical`;
+//         }
+        
+//         // Only add the bush if it's not forbidden and not already present
+//         if (!forbiddenBushes.has(bushKey) && !bushes.has(bushKey)) {
+//             bushes.add(bushKey);
+//         }
+        
+//         attempts++;
+//     }
+    
+//     // If we couldn't generate enough bushes due to restrictions, 
+//     // fill remaining spots with non-forbidden positions
+//     while (bushes.size < numBushes && attempts < maxAttempts * 2) {
+//         const isHorizontal = Math.random() < 0.5;
+//         let bushKey;
+        
+//         if (isHorizontal) {
+//             const row = Math.floor(Math.random() * 8);
+//             const col = Math.floor(Math.random() * 7);
+//             bushKey = `${row}-${col}-horizontal`;
+//         } else {
+//             const row = Math.floor(Math.random() * 7);
+//             const col = Math.floor(Math.random() * 8);
+//             bushKey = `${row}-${col}-vertical`;
+//         }
+        
+//         if (!forbiddenBushes.has(bushKey) && !bushes.has(bushKey)) {
+//             bushes.add(bushKey);
+//         }
+        
+//         attempts++;
+//     }
+// }
 function createRandomBushes() {
     bushes.clear();
     
@@ -831,36 +909,117 @@ function createRandomBushes() {
         }
     });
     
-    // Generate 8-12 random bush lines, avoiding forbidden positions
-    const numBushes = Math.floor(Math.random() * 5) + 8;
-    let attempts = 0;
-    const maxAttempts = 100; // Prevent infinite loops
-    
-    while (bushes.size < numBushes && attempts < maxAttempts) {
-        const isHorizontal = Math.random() < 0.5;
-        let bushKey;
-        
-        if (isHorizontal) {
-            const row = Math.floor(Math.random() * 8); // 0-7 for horizontal lines
-            const col = Math.floor(Math.random() * 7); // 0-6 for horizontal lines
-            bushKey = `${row}-${col}-horizontal`;
-        } else {
-            const row = Math.floor(Math.random() * 7); // 0-6 for vertical lines
-            const col = Math.floor(Math.random() * 8); // 0-7 for vertical lines
-            bushKey = `${row}-${col}-vertical`;
+    // Helper function to check if a bush configuration creates a path from sheep to edge
+    function createsBadPath(candidateBushes) {
+        // For each sheep, check if there's a path from adjacent positions to any edge
+        for (const [sheepRow, sheepCol] of sheep) {
+            const adjacentPositions = [
+                `${sheepRow}-${sheepCol}-horizontal`,
+                `${sheepRow + 1}-${sheepCol}-horizontal`,
+                `${sheepRow}-${sheepCol}-vertical`,
+                `${sheepRow}-${sheepCol + 1}-vertical`
+            ].filter(pos => candidateBushes.has(pos));
+            
+            // For each adjacent bush position, check if it connects to an edge
+            for (const startPos of adjacentPositions) {
+                if (hasPathToEdge(startPos, candidateBushes)) {
+                    return true;
+                }
+            }
         }
-        
-        // Only add the bush if it's not forbidden and not already present
-        if (!forbiddenBushes.has(bushKey) && !bushes.has(bushKey)) {
-            bushes.add(bushKey);
-        }
-        
-        attempts++;
+        return false;
     }
     
-    // If we couldn't generate enough bushes due to restrictions, 
-    // fill remaining spots with non-forbidden positions
-    while (bushes.size < numBushes && attempts < maxAttempts * 2) {
+    // Helper function to check if a bush position connects to any edge via other bushes
+    function hasPathToEdge(startPos, candidateBushes) {
+        const visited = new Set();
+        const queue = [startPos];
+        
+        while (queue.length > 0) {
+            const currentPos = queue.shift();
+            
+            if (visited.has(currentPos)) continue;
+            visited.add(currentPos);
+            
+            const [row, col, type] = currentPos.split('-');
+            const rowNum = parseInt(row);
+            const colNum = parseInt(col);
+            
+            // Check if current position is at an edge
+            if (isEdgePosition(rowNum, colNum, type)) {
+                return true;
+            }
+            
+            // Get connected bush positions
+            const connected = getConnectedBushes(rowNum, colNum, type, candidateBushes);
+            for (const connectedPos of connected) {
+                if (!visited.has(connectedPos)) {
+                    queue.push(connectedPos);
+                }
+            }
+        }
+        
+        return false;
+    }
+    
+    // Helper function to check if a bush position is at a board edge
+    function isEdgePosition(row, col, type) {
+        if (type === 'horizontal') {
+            return row === 0 || row === 7;
+        } else { // vertical
+            return col === 0 || col === 7;
+        }
+    }
+    
+    // Helper function to get connected bush positions
+    function getConnectedBushes(row, col, type, candidateBushes) {
+        const connected = [];
+        
+        if (type === 'horizontal') {
+            // Horizontal bush can connect to vertical bushes at its endpoints
+            // Left endpoint (row, col)
+            if (candidateBushes.has(`${row}-${col}-vertical`)) {
+                connected.push(`${row}-${col}-vertical`);
+            }
+            if (row > 0 && candidateBushes.has(`${row-1}-${col}-vertical`)) {
+                connected.push(`${row-1}-${col}-vertical`);
+            }
+            
+            // Right endpoint (row, col+1)
+            if (candidateBushes.has(`${row}-${col+1}-vertical`)) {
+                connected.push(`${row}-${col+1}-vertical`);
+            }
+            if (row > 0 && candidateBushes.has(`${row-1}-${col+1}-vertical`)) {
+                connected.push(`${row-1}-${col+1}-vertical`);
+            }
+        } else { // vertical
+            // Vertical bush can connect to horizontal bushes at its endpoints
+            // Top endpoint (row, col)
+            if (candidateBushes.has(`${row}-${col}-horizontal`)) {
+                connected.push(`${row}-${col}-horizontal`);
+            }
+            if (col > 0 && candidateBushes.has(`${row}-${col-1}-horizontal`)) {
+                connected.push(`${row}-${col-1}-horizontal`);
+            }
+            
+            // Bottom endpoint (row+1, col)
+            if (candidateBushes.has(`${row+1}-${col}-horizontal`)) {
+                connected.push(`${row+1}-${col}-horizontal`);
+            }
+            if (col > 0 && candidateBushes.has(`${row+1}-${col-1}-horizontal`)) {
+                connected.push(`${row+1}-${col-1}-horizontal`);
+            }
+        }
+        
+        return connected;
+    }
+    
+    // Generate bushes with path checking
+    const numBushes = Math.floor(Math.random() * 5) + 8;
+    let attempts = 0;
+    const maxAttempts = 1000;
+    
+    while (bushes.size < numBushes && attempts < maxAttempts) {
         const isHorizontal = Math.random() < 0.5;
         let bushKey;
         
@@ -874,7 +1033,17 @@ function createRandomBushes() {
             bushKey = `${row}-${col}-vertical`;
         }
         
-        if (!forbiddenBushes.has(bushKey) && !bushes.has(bushKey)) {
+        // Check if this bush is forbidden or already exists
+        if (forbiddenBushes.has(bushKey) || bushes.has(bushKey)) {
+            attempts++;
+            continue;
+        }
+        
+        // Temporarily add the bush and check if it creates a bad path
+        const testBushes = new Set(bushes);
+        testBushes.add(bushKey);
+        
+        if (!createsBadPath(testBushes)) {
             bushes.add(bushKey);
         }
         
